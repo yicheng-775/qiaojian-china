@@ -7,6 +7,7 @@
   "use strict";
 
   var FLAG = { "中": "中", "英": "EN", "日": "日", "德": "DE" };
+  var CODE_FLAG = { en: "EN", ja: "日", de: "DE" };
   var LEVEL_TAG = { "高": "tag-red", "中": "tag-gold", "低": "tag-green" };
 
   var state = {
@@ -48,6 +49,43 @@
     var filtered = [], lastEnd = -1;
     matches.forEach(function (m) { if (m.start >= lastEnd) { filtered.push(m); lastEnd = m.end; } });
     return filtered;
+  }
+
+  /* 长文本按句切分，避免超过免费接口单次长度限制 */
+  function splitText(text, maxLen) {
+    if (text.length <= maxLen) return [text];
+    var sentences = text.match(/[^。！？!?；;]+[。！？!?；;]?/g) || [text];
+    var chunks = [], cur = "";
+    sentences.forEach(function (s) {
+      if ((cur + s).length > maxLen && cur) { chunks.push(cur); cur = s; }
+      else { cur += s; }
+    });
+    if (cur) chunks.push(cur);
+    return chunks;
+  }
+
+  /* 调用 MyMemory 免费翻译接口（无需密钥，匿名限额约 5000 字/天） */
+  function translateText(text, from, to, callback) {
+    var chunks = splitText(text, 400);
+    var results = [], pending = chunks.length, failed = false;
+    chunks.forEach(function (chunk, i) {
+      var url = "https://api.mymemory.translated.net/get?q=" + encodeURIComponent(chunk) + "&langpair=" + from + "|" + to;
+      fetch(url)
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (data && data.responseStatus === 200 && data.responseData && data.responseData.translatedText) {
+            results[i] = data.responseData.translatedText;
+          } else { failed = true; results[i] = ""; }
+        })
+        .catch(function () { failed = true; results[i] = ""; })
+        .then(function () {
+          pending--;
+          if (pending === 0) {
+            if (failed) callback(new Error("翻译失败：可能超出免费接口每日限额，或网络异常"));
+            else callback(null, results.join(""));
+          }
+        });
+    });
   }
 
   /* ---------- 语言选择 ---------- */
@@ -176,10 +214,17 @@
       html += "</div>";
       el.innerHTML = html;
     } else {
-      var h = '<div class="hint-box" style="margin-bottom:18px;">当前为自定义文本，完整译文需接入 AI 翻译能力（原型暂未接入）。以下为识别到的敏感点及其建议文化处理策略。</div>';
+      var h = '<div class="hint-box" style="margin-bottom:18px;">以下译文由通用机器翻译生成，<b>未做文化适配</b>；请结合「改写建议」页签，手动调整被高亮的文化敏感处。</div>';
       h += '<div class="lang-grid">';
       h += '<div class="lang-panel"><div class="lp-head"><span class="lp-lang"><span class="lp-flag">中</span>中文（原稿）</span></div>' +
         '<div class="lp-body">' + escapeHtml(state.source) + '</div></div>';
+      var targets = QJC.languages.filter(function (lg) { return state.languages.indexOf(lg.code) !== -1; });
+      targets.forEach(function (lg) {
+        h += '<div class="lang-panel" id="lang-panel-' + lg.code + '">' +
+          '<div class="lp-head"><span class="lp-lang"><span class="lp-flag">' + CODE_FLAG[lg.code] + '</span>' + lg.full + '</span>' +
+          '<span class="tag tag-gray">机翻</span></div>' +
+          '<div class="lp-body" style="color:var(--ink-faint);">翻译中…</div></div>';
+      });
       if (state.matches.length) {
         h += '<div class="lang-panel"><div class="lp-head"><span class="lp-lang">适配改写策略</span><span class="tag tag-red">' + state.matches.length + ' 处</span></div>' +
           '<div class="lp-body" style="font-size:14px;">' +
@@ -190,6 +235,21 @@
       }
       h += "</div>";
       el.innerHTML = h;
+
+      // 异步调用免费翻译接口
+      targets.forEach(function (lg) {
+        translateText(state.source, "zh-CN", lg.code, function (err, translated) {
+          var panel = document.getElementById("lang-panel-" + lg.code);
+          if (!panel) return;
+          var body = panel.querySelector(".lp-body");
+          if (err) {
+            body.innerHTML = '<span style="color:var(--cinnabar);">' + escapeHtml(err.message) + '</span>';
+          } else {
+            body.style.color = "var(--ink)";
+            body.textContent = translated;
+          }
+        });
+      });
     }
   }
 
