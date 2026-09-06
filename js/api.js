@@ -47,6 +47,7 @@ QJC.api = (function () {
     var url = state.endpoint ||
       (QJC.config.AI_ENDPOINTS && QJC.config.AI_ENDPOINTS[0] && QJC.config.AI_ENDPOINTS[0].endpoint) ||
       QJC.config.AI_PROXY;
+    var key = QJC.storage.loadSettings().deepseekKey || "";
     return fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -54,7 +55,8 @@ QJC.api = (function () {
         model: QJC.config.model,
         messages: messages,
         temperature: temperature,
-        password: QJC.config.authPassword
+        password: QJC.config.authPassword,
+        key: key
       })
     })
       .then(function (r) {

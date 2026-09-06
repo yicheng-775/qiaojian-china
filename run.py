@@ -85,10 +85,6 @@ class Handler(BaseHTTPRequestHandler):
         self._json(404, {"ok": False, "error": "not found"})
 
     def _handle_ai(self):
-        key = load_key()
-        if not key:
-            self._json(500, {"ok": False, "error": "未配置 key：请在 key.txt 填入 DeepSeek API key"})
-            return
         try:
             length = int(self.headers.get("Content-Length", 0))
             payload = json.loads(self.rfile.read(length).decode("utf-8"))
@@ -98,6 +94,11 @@ class Handler(BaseHTTPRequestHandler):
 
         if payload.get("password") != AUTH_PASSWORD:
             self._json(403, {"ok": False, "error": "访问密码错误"})
+            return
+
+        key = payload.get("key") or load_key()
+        if not key:
+            self._json(500, {"ok": False, "error": "未填写 DeepSeek API key"})
             return
 
         body = {

@@ -45,9 +45,10 @@ exports.handler = async function (event) {
     return { statusCode: 403, headers, body: JSON.stringify({ ok: false, error: "访问密码错误" }) };
   }
 
-  // key 通过环境变量 DEEPSEEK_API_KEY 配置（不进代码仓库，避免泄露）
-  if (!DEEPSEEK_API_KEY) {
-    return { statusCode: 500, headers, body: JSON.stringify({ ok: false, error: "未配置 DEEPSEEK_API_KEY 环境变量" }) };
+  // key：优先用户自填（payload.key），可回退环境变量（可选）
+  const apiKey = payload.key || DEEPSEEK_API_KEY;
+  if (!apiKey) {
+    return { statusCode: 500, headers, body: JSON.stringify({ ok: false, error: "未填写 DeepSeek API key" }) };
   }
 
   // 转发 DeepSeek
@@ -64,7 +65,7 @@ exports.handler = async function (event) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": "Bearer " + DEEPSEEK_API_KEY,
+        "Authorization": "Bearer " + apiKey,
       },
       body: JSON.stringify(body),
     });

@@ -169,6 +169,7 @@
     $("setTone").value = s.tone;
     $("setAnnotate").checked = !!s.annotate;
     $("setDomestication").checked = !!s.domestication;
+    $("setDeepseekKey").value = s.deepseekKey || "";
   }
   function saveSettingsFromForm() {
     var s = QJC.storage.loadSettings();
@@ -176,6 +177,7 @@
     s.tone = $("setTone").value;
     s.annotate = $("setAnnotate").checked;
     s.domestication = $("setDomestication").checked;
+    s.deepseekKey = ($("setDeepseekKey").value || "").trim();
     QJC.storage.saveSettings(s);
     closeSettings();
   }

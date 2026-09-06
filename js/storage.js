@@ -23,7 +23,8 @@ QJC.storage = (function () {
       audience: "general",       // general | news | academic | youth
       tone: "faithful",          // faithful 忠实 | fluent 流畅归化 | concise 精简
       annotate: true,            // 偏好「音译+括号注释」
-      domestication: true        // 归化 true / 异化 false
+      domestication: true,       // 归化 true / 异化 false
+      deepseekKey: ""            // 用户自填的 DeepSeek key（仅存本机，不随导出打包）
     };
   }
 
