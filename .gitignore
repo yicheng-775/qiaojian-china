@@ -1,0 +1,10 @@
+# DeepSeek API key（只存本机，切勿提交）
+key.txt
+
+# Python
+__pycache__/
+*.pyc
+
+# 系统
+.DS_Store
+Thumbs.db

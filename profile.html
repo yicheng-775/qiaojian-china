@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>我的画像 · 桥见川渝</title>
+  <meta name="description" content="桥见川渝 · 用户写作画像报告：领域、体裁、写作风格占比与习惯偏好。" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    body { background: var(--paper); }
+    .topbar {
+      position: sticky; top: 0; z-index: 60;
+      background: rgba(251, 247, 240, 0.88);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(33, 29, 23, 0.08);
+    }
+    .topbar-inner {
+      max-width: var(--maxw); margin: 0 auto; padding: 0 24px;
+      height: 62px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; }
+    .brand-mark {
+      width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center;
+      background: linear-gradient(135deg, var(--cinnabar), #e06a45); color: #fff;
+      font-family: var(--font-serif); font-size: 16px; font-weight: 700; box-shadow: var(--shadow-sm);
+    }
+    .brand small { font-weight: 500; color: var(--ink-faint); font-size: 13px; margin-left: 2px; }
+    .topbar nav { display: flex; align-items: center; gap: 20px; }
+    .topbar nav a { font-size: 14px; color: var(--ink-soft); font-weight: 500; transition: color .16s; }
+    .topbar nav a:hover { color: var(--cinnabar); }
+
+    .container-narrow { max-width: 860px; margin: 0 auto; padding: 0 24px; }
+    .page-head { padding: 48px 0 12px; text-align: center; }
+    .page-head h1 { font-family: var(--font-serif); font-size: clamp(28px, 4.6vw, 40px); }
+    .page-head p { margin-top: 10px; color: var(--ink-soft); font-size: 15.5px; }
+
+    .stat-strip { display: flex; justify-content: center; gap: 12px; margin: 20px 0 8px; flex-wrap: wrap; }
+    .stat-card { background: #fff; border: var(--border); border-radius: var(--r-md); padding: 14px 24px; box-shadow: var(--shadow-sm); text-align: center; }
+    .stat-card .num { font-family: var(--font-serif); font-size: 26px; font-weight: 700; color: var(--cinnabar); line-height: 1; }
+    .stat-card .cap { font-size: 12px; color: var(--ink-faint); margin-top: 5px; }
+
+    .panel { background: #fff; border: var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); padding: 24px 26px; margin-bottom: 18px; }
+    .panel h2 { font-size: 17px; margin-bottom: 6px; }
+    .panel .panel-sub { font-size: 13px; color: var(--ink-faint); margin-bottom: 18px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    @media (max-width: 640px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .portrait-box { background: var(--paper-deep); border-radius: var(--r-md); padding: 18px 20px; font-size: 14.5px; line-height: 1.9; color: var(--ink); border-left: 4px solid var(--cinnabar); }
+
+    .pref-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    @media (max-width: 640px) { .pref-grid { grid-template-columns: 1fr; } }
+    .pref-item { background: var(--paper-deep); border-radius: var(--r-sm); padding: 12px 14px; }
+    .pref-item .k { font-size: 12px; color: var(--ink-faint); margin-bottom: 4px; }
+    .pref-item .v { font-size: 14px; font-weight: 600; color: var(--ink); }
+
+    .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; justify-content: center; }
+    .toolbar .btn { font-size: 13.5px; }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="index.html">
+        <span class="brand-mark">桥</span>
+        <span>桥见川渝 <small>· 我的画像</small></span>
+      </a>
+      <nav>
+        <a href="index.html">使用工具</a>
+        <a href="about.html">关于项目</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-head container-narrow">
+      <h1>我的写作画像</h1>
+      <p>基于你翻译过的稿件与改稿对话，自动生成的撰稿风格画像。</p>
+      <div class="stat-strip">
+        <div class="stat-card"><div class="num" id="profileTotal">0</div><div class="cap">累计稿件</div></div>
+      </div>
+    </section>
+
+    <div class="container-narrow">
+      <div class="toolbar">
+        <button class="btn btn-primary btn-sm" id="exportBtn">导出画像 (.json)</button>
+        <button class="btn btn-ghost btn-sm" id="importBtn">导入画像</button>
+        <button class="btn btn-ghost btn-sm" id="clearBtn" style="color:var(--cinnabar)">清空数据</button>
+        <input type="file" id="importFile" accept="application/json" style="display:none" />
+      </div>
+
+      <div class="panel">
+        <h2>写作风格画像</h2>
+        <p class="panel-sub">AI 生成的风格摘要（无 AI 时为前端即时归纳）。</p>
+        <div class="portrait-box" id="portraitSummary">暂无数据——先去翻译几篇文章，画像会自动生成。</div>
+      </div>
+
+      <div class="grid-2">
+        <div class="panel">
+          <h2>领域占比</h2>
+          <p class="panel-sub">你常写的内容领域（写什么）。</p>
+          <div id="domainBars"></div>
+        </div>
+        <div class="panel">
+          <h2>体裁占比</h2>
+          <p class="panel-sub">你常采用的新闻体裁。</p>
+          <div id="genreBars"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>写作风格维度</h2>
+        <p class="panel-sub">各维度最常出现的倾向（怎么写，画像核心）。</p>
+        <div id="styleBars"></div>
+      </div>
+
+      <div class="panel">
+        <h2>我的习惯偏好</h2>
+        <p class="panel-sub">这些偏好会注入 AI 改稿，让译文贴合你的风格（可在工具页「设置」里修改）。</p>
+        <div class="pref-grid">
+          <div class="pref-item"><div class="k">目标读者</div><div class="v" id="prefAudience">—</div></div>
+          <div class="pref-item"><div class="k">语气偏好</div><div class="v" id="prefTone">—</div></div>
+          <div class="pref-item"><div class="k">文化词注释</div><div class="v" id="prefAnnotate">—</div></div>
+          <div class="pref-item"><div class="k">文化处理倾向</div><div class="v" id="prefDomestication">—</div></div>
+          <div class="pref-item"><div class="k">已确认术语</div><div class="v" id="prefTerms">0 组</div></div>
+          <div class="pref-item"><div class="k">已提取规则</div><div class="v" id="prefRules">0 条</div></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <p><strong style="color:var(--ink)">桥见川渝</strong> · 川渝中译英 AI 改稿助手</p>
+      <p><a href="index.html">返回工具</a></p>
+    </div>
+  </footer>
+
+  <script src="js/config.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/prompts.js"></script>
+  <script src="js/segments.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/profile.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      QJC.profile.renderReport();
+
+      document.getElementById("exportBtn").addEventListener("click", function () {
+        var json = QJC.storage.exportJSON();
+        var blob = new Blob([json], { type: "application/json" });
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "桥见川渝-画像.json";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      });
+
+      document.getElementById("importBtn").addEventListener("click", function () {
+        document.getElementById("importFile").click();
+      });
+
+      document.getElementById("importFile").addEventListener("change", function (e) {
+        var f = e.target.files[0];
+        if (!f) return;
+        var r = new FileReader();
+        r.onload = function () {
+          var res = QJC.storage.importJSON(r.result);
+          if (res.ok) { QJC.profile.renderReport(); alert("导入成功"); }
+          else { alert("导入失败：" + res.error); }
+        };
+        r.readAsText(f);
+        e.target.value = "";
+      });
+
+      document.getElementById("clearBtn").addEventListener("click", function () {
+        if (confirm("确定清空所有画像与历史数据？此操作不可撤销。")) {
+          QJC.storage.clear();
+          QJC.profile.renderReport();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

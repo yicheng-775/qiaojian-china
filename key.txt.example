@@ -1,0 +1,9 @@
+# 桥见川渝 · DeepSeek API Key 配置
+#
+# 1. 复制本文件，重命名为 key.txt（不要删除 .example 这个文件本身）
+# 2. 把下面一行替换成你自己的 DeepSeek API key（以 sk- 开头）
+# 3. 保存后双击 run-ai.bat 启动，浏览器打开 http://localhost:8000
+#
+# 注意：key.txt 只存在你本机，请勿提交到 git 或上传到公开网站。
+#
+sk-在此填入你的DeepSeekAPIkey

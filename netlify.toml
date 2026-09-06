@@ -1,0 +1,5 @@
+[build]
+  # 云函数目录（部署后会生成 /.netlify/functions/ai 这个接口）
+  functions = "netlify/functions"
+  # 静态站点发布目录（项目根目录，index.html 在这里）
+  publish = "."

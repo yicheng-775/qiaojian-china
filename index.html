@@ -3,11 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>桥见中国 · AI 跨文化编辑助手</title>
-  <meta name="description" content="粘贴中文原稿，自动识别外国人容易误读的文化表达，给出可落地的改写建议与中英日德多语种版本。" />
+  <title>桥见川渝 · AI 改稿助手</title>
+  <meta name="description" content="面向内容创作者的川渝中译英 AI 改稿助手：粘贴中文原稿，自动识别文化表达、生成英文译文，并可针对某段对话协商改稿。" />
   <link rel="stylesheet" href="css/style.css" />
   <style>
-    /* ============ 工具页样式 ============ */
     body { background: var(--paper); }
 
     .topbar {
@@ -18,7 +17,7 @@
     }
     .topbar-inner {
       max-width: var(--maxw); margin: 0 auto; padding: 0 24px;
-      height: 62px; display: flex; align-items: center; justify-content: space-between;
+      height: 62px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
     }
     .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; }
     .brand-mark {
@@ -27,17 +26,23 @@
       font-family: var(--font-serif); font-size: 16px; font-weight: 700; box-shadow: var(--shadow-sm);
     }
     .brand small { font-weight: 500; color: var(--ink-faint); font-size: 13px; margin-left: 2px; }
+    .topbar nav { display: flex; align-items: center; gap: 20px; }
     .topbar nav a { font-size: 14px; color: var(--ink-soft); font-weight: 500; transition: color .16s; }
     .topbar nav a:hover { color: var(--cinnabar); }
+    .icon-btn {
+      width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center;
+      border: var(--border); background: #fff; color: var(--ink-soft); font-size: 17px;
+      transition: all .15s;
+    }
+    .icon-btn:hover { color: var(--cinnabar); border-color: var(--cinnabar); }
 
-    .container-narrow { max-width: 860px; margin: 0 auto; padding: 0 24px; }
+    .container-narrow { max-width: 1000px; margin: 0 auto; padding: 0 24px; }
 
     /* Hero */
-    .hero { padding: 56px 0 40px; text-align: center; }
+    .hero { padding: 52px 0 36px; text-align: center; }
     .hero-kicker {
       display: inline-block; font-size: 12.5px; font-weight: 700; letter-spacing: .16em;
-      color: var(--teal); background: rgba(27,94,90,.10); padding: 5px 14px; border-radius: 999px;
-      margin-bottom: 18px;
+      color: var(--teal); background: rgba(27,94,90,.10); padding: 5px 14px; border-radius: 999px; margin-bottom: 18px;
     }
     .hero-title {
       font-family: var(--font-serif); font-size: clamp(32px, 5.6vw, 52px);
@@ -46,8 +51,7 @@
     .hero-title em { font-style: normal; color: var(--cinnabar); }
     .hero-sub { margin: 16px auto 0; max-width: 560px; color: var(--ink-soft); font-size: 16px; line-height: 1.8; }
 
-    /* 示例 chips */
-    .examples { margin: 26px 0 18px; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+    .examples { margin: 24px 0 18px; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
     .examples-label { font-size: 13.5px; color: var(--ink-faint); }
     .chip {
       padding: 8px 16px; border-radius: 999px; font-size: 14px; font-weight: 500; cursor: pointer;
@@ -58,29 +62,15 @@
     /* 输入卡片 */
     .input-card {
       background: #fff; border: var(--border); border-radius: var(--r-xl);
-      box-shadow: var(--shadow-lg); padding: 22px; text-align: left;
-      max-width: 720px; margin: 0 auto;
+      box-shadow: var(--shadow-lg); padding: 22px; text-align: left; max-width: 760px; margin: 0 auto;
     }
-    .input-lang { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
-    .input-lang > span { font-size: 13px; font-weight: 700; color: var(--ink-soft); letter-spacing: .04em; }
-    .lang-chips { display: flex; gap: 8px; flex-wrap: wrap; }
-    .lang-chip {
-      display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 999px;
-      font-size: 13px; font-weight: 600; cursor: pointer; transition: all .15s;
-      background: var(--paper); border: 1.5px solid rgba(33,29,23,.14); color: var(--ink-soft);
-    }
-    .lang-chip .ck { width: 15px; height: 15px; border-radius: 5px; border: 1.5px solid rgba(33,29,23,.3); display: grid; place-items: center; font-size: 10px; color: #fff; transition: all .15s; }
-    .lang-chip.on { border-color: var(--cinnabar); color: var(--cinnabar); background: rgba(194,64,42,.05); }
-    .lang-chip.on .ck { background: var(--cinnabar); border-color: var(--cinnabar); }
-
     textarea.origin {
-      width: 100%; min-height: 180px; padding: 18px 20px; border-radius: var(--r-md);
+      width: 100%; min-height: 170px; padding: 18px 20px; border-radius: var(--r-md);
       border: 1.5px solid rgba(33,29,23,.14); background: #fff; font-size: 16px; line-height: 1.9;
       color: var(--ink); resize: vertical; font-family: var(--font-sans); transition: border .16s, box-shadow .16s;
     }
     textarea.origin:focus { outline: none; border-color: var(--cinnabar); box-shadow: var(--ring); }
     textarea.origin::placeholder { color: var(--ink-faint); }
-
     .input-actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 16px; flex-wrap: wrap; }
     .input-hint { font-size: 12.5px; color: var(--ink-faint); }
     .analyze-btn {
@@ -89,99 +79,38 @@
       transition: transform .16s, background .16s, box-shadow .16s;
     }
     .analyze-btn:hover { background: var(--cinnabar-deep); transform: translateY(-2px); box-shadow: var(--shadow-lg); }
-    .analyze-btn:disabled { background: var(--ink-faint); cursor: not-allowed; box-shadow: none; transform: none; }
 
     /* 结果区 */
-    .results { padding: 20px 0 80px; }
-    .result-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; }
-    .result-title { font-family: var(--font-serif); font-size: 24px; font-weight: 700; }
+    .results { padding: 16px 0 60px; }
+    .result-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; }
+    .result-title { font-family: var(--font-serif); font-size: 22px; font-weight: 700; }
     .result-stats { display: flex; gap: 10px; flex-wrap: wrap; }
     .rs-pill { padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; background: #fff; border: var(--border); color: var(--ink-soft); }
     .rs-pill b { color: var(--cinnabar); }
+    .rs-tag { color: var(--teal); border-color: rgba(27,94,90,.3); background: rgba(27,94,90,.06); }
 
-    .tabs { display: flex; gap: 6px; border-bottom: 1.5px solid rgba(33,29,23,.10); margin-bottom: 22px; overflow-x: auto; }
-    .tab {
-      padding: 11px 20px; font-size: 15px; font-weight: 600; color: var(--ink-soft); cursor: pointer;
-      background: none; border: none; border-bottom: 2.5px solid transparent; white-space: nowrap;
-      transition: color .15s, border-color .15s; margin-bottom: -1.5px;
+    /* 工作台双栏 */
+    .workspace { display: grid; grid-template-columns: 1fr 360px; gap: 18px; align-items: start; }
+    .workspace .card { padding: 18px; }
+    .col-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .col-title h3 { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .col-title h3 .dotc { width: 9px; height: 9px; border-radius: 50%; background: var(--cinnabar); display: inline-block; }
+
+    .save-btn {
+      padding: 9px 18px; border-radius: 999px; border: var(--border-strong); background: #fff;
+      font-size: 13.5px; font-weight: 600; color: var(--ink-soft); transition: all .15s;
     }
-    .tab:hover { color: var(--ink); }
-    .tab.active { color: var(--cinnabar); border-bottom-color: var(--cinnabar); }
-    .tab-panel { display: none; }
-    .tab-panel.active { display: block; animation: fadeUp .35s ease both; }
+    .save-btn:hover { color: var(--cinnabar); border-color: var(--cinnabar); }
+    .save-btn:disabled { opacity: .6; cursor: default; }
 
-    /* 原文高亮 */
-    .text-stage {
-      background: #fff; border: var(--border); border-radius: var(--r-lg); padding: 26px 30px;
-      box-shadow: var(--shadow-sm);
+    .error-hint { padding: 12px 16px; border-radius: var(--r-md); font-size: 13px; line-height: 1.6; background: rgba(194,64,42,.06); border: 1px dashed rgba(194,64,42,.4); color: var(--cinnabar); margin-bottom: 14px; }
+
+    @media (max-width: 860px) {
+      .workspace { grid-template-columns: 1fr; }
     }
-    .parsed { font-size: 17px; line-height: 2.2; color: var(--ink); white-space: pre-wrap; word-break: break-word; }
-    mark.hl { padding: 2px 6px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: box-shadow .15s; }
-    mark.hl:hover { box-shadow: 0 0 0 2px rgba(33,29,23,.25); }
-    mark.hl.cultural { background: rgba(194,64,42,.16); color: #9c2f1d; border-bottom: 2px solid var(--cinnabar); }
-    mark.hl.metaphor { background: rgba(185,138,47,.22); color: #7c5a14; border-bottom: 2px solid var(--gold); }
-    mark.hl.context { background: rgba(27,94,90,.14); color: #14504c; border-bottom: 2px solid var(--teal); }
-
-    .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 14px; }
-    .legend li { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--ink-soft); }
-    .legend .sw { width: 13px; height: 13px; border-radius: 4px; flex: none; }
-    .sw-cultural { background: rgba(194,64,42,.25); border: 1.5px solid var(--cinnabar); }
-    .sw-metaphor { background: rgba(185,138,47,.3); border: 1.5px solid var(--gold); }
-    .sw-context { background: rgba(27,94,90,.2); border: 1.5px solid var(--teal); }
-
-    /* 诊断 */
-    .diag-item {
-      background: #fff; border: var(--border); border-radius: var(--r-md); padding: 20px 22px;
-      margin-bottom: 14px; box-shadow: var(--shadow-sm); border-left: 4px solid var(--teal); transition: box-shadow .15s;
-    }
-    .diag-item:hover { box-shadow: var(--shadow-md); }
-    .diag-item.high { border-left-color: var(--risk-high); }
-    .diag-item.mid { border-left-color: var(--risk-mid); }
-    .diag-item.low { border-left-color: var(--risk-low); }
-    .diag-top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
-    .diag-term { font-size: 18px; font-weight: 700; font-family: var(--font-serif); }
-    .diag-reason { font-size: 14.5px; color: var(--ink-soft); line-height: 1.75; }
-
-    /* 改写建议 */
-    .sug-item { background: #fff; border: var(--border); border-radius: var(--r-md); padding: 20px 22px; margin-bottom: 16px; box-shadow: var(--shadow-sm); }
-    .sug-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
-    .sug-options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
-    .sug-opt {
-      display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border-radius: var(--r-sm);
-      border: 1.5px solid rgba(33,29,23,.12); cursor: pointer; transition: all .15s; background: #fff;
-    }
-    .sug-opt:hover { border-color: var(--gold); }
-    .sug-opt.adopted { border-color: var(--cinnabar); background: rgba(194,64,42,.05); box-shadow: var(--ring); }
-    .sug-opt .radio { width: 18px; height: 18px; border-radius: 50%; border: 2px solid rgba(33,29,23,.3); flex: none; margin-top: 2px; display: grid; place-items: center; }
-    .sug-opt.adopted .radio { border-color: var(--cinnabar); }
-    .sug-opt.adopted .radio::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--cinnabar); }
-    .sug-opt .sug-text { font-size: 14.5px; color: var(--ink); line-height: 1.7; }
-    .edit-box { width: 100%; padding: 12px 14px; border-radius: var(--r-sm); border: var(--border-strong); font-size: 14.5px; line-height: 1.7; font-family: var(--font-sans); color: var(--ink); background: var(--paper); resize: vertical; }
-    .edit-box:focus { outline: none; border-color: var(--cinnabar); }
-
-    /* 多语种 */
-    .lang-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
-    .lang-panel { background: #fff; border: var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); overflow: hidden; }
-    .lang-panel .lp-head { padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: var(--border); }
-    .lang-panel .lp-lang { font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 8px; }
-    .lang-panel .lp-flag { width: 28px; height: 20px; border-radius: 5px; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #fff; background: var(--cinnabar); }
-    .lang-panel .lp-body { padding: 20px; font-size: 15px; line-height: 2; color: var(--ink); }
-    .lang-panel .lp-strategy { padding: 12px 20px; background: var(--paper-deep); font-size: 12.5px; color: var(--ink-soft); border-top: var(--border); line-height: 1.6; }
-    .lang-panel .lp-strategy b { color: var(--cinnabar); }
-
-    .hint-box { padding: 16px 18px; border-radius: var(--r-md); font-size: 13.5px; line-height: 1.7; background: rgba(27,94,90,.07); border: 1px dashed rgba(27,94,90,.4); color: var(--teal); }
-
-    /* 页脚 */
-    .footer { padding: 44px 0 36px; border-top: 1px solid rgba(33,29,23,.08); background: var(--paper-deep); }
-    .footer-inner { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
-    .footer p { font-size: 13.5px; color: var(--ink-soft); }
-    .footer a { color: var(--cinnabar); font-weight: 600; }
-
-    @media (max-width: 720px) {
-      .hero { padding: 40px 0 28px; }
-      .lang-grid { grid-template-columns: 1fr; }
-      .input-actions { flex-direction: column; align-items: stretch; }
-      .analyze-btn { width: 100%; text-align: center; }
+    @media (max-width: 560px) {
+      .hero { padding: 40px 0 24px; }
+      .topbar nav a.hide-sm { display: none; }
     }
   </style>
 </head>
@@ -192,9 +121,13 @@
     <div class="topbar-inner">
       <a class="brand" href="index.html">
         <span class="brand-mark">桥</span>
-        <span>桥见中国 <small>· 跨文化编辑助手</small></span>
+        <span>桥见川渝 <small>· AI 改稿助手</small></span>
       </a>
-      <nav><a href="about.html">关于项目 →</a></nav>
+      <nav>
+        <a href="profile.html" class="hide-sm">我的画像</a>
+        <a href="about.html" class="hide-sm">关于项目</a>
+        <button class="icon-btn" id="openSettings" title="设置" aria-label="设置">⚙</button>
+      </nav>
     </div>
   </header>
 
@@ -202,26 +135,22 @@
     <!-- ============ 输入区 ============ -->
     <section class="hero">
       <div class="container-narrow">
-        <span class="hero-kicker">AI 跨文化编辑助手</span>
-        <h1 class="hero-title">让中国故事，<br>被世界<em>读懂</em></h1>
-        <p class="hero-sub">粘贴中文原稿，自动识别外国人容易误读的文化表达，给出可落地的改写建议与中、英、日、德多语种版本。</p>
+        <span class="hero-kicker">川渝中译英 · 跨文化编辑</span>
+        <h1 class="hero-title">让川渝故事，<br>被世界<em>读懂</em></h1>
+        <p class="hero-sub">粘贴中文原稿，自动识别川渝文化表达、生成英文译文，并可针对任意段落对话协商改稿。</p>
 
         <div class="examples">
           <span class="examples-label">试一个示例：</span>
-          <button class="chip" data-case="tea">🍵 以茶待客</button>
-          <button class="chip" data-case="street">🌙 夜色烟火</button>
-          <button class="chip" data-case="dragonboat">🐉 端午安康</button>
+          <button class="chip" data-case="chengdu">🍵 成都慢生活</button>
+          <button class="chip" data-case="chongqing">🌶 重庆江湖</button>
+          <button class="chip" data-case="feiyi">🎭 巴蜀非遗</button>
         </div>
 
         <div class="input-card">
-          <div class="input-lang">
-            <span>目标语言</span>
-            <div class="lang-chips" id="langChips"></div>
-          </div>
-          <textarea class="origin" id="originText" placeholder="在此粘贴你的中文原稿，例如：在中国，人们常说「以茶代酒」，拜访亲友时主人总会泡上一壶热茶……"></textarea>
+          <textarea class="origin" id="originText" placeholder="在此粘贴你的中文原稿，例如：在成都，慢不是懒，而是一种生活态度。清晨的茶馆里，人们用盖碗茶泡开一天，摆起龙门阵……"></textarea>
           <div class="input-actions">
-            <span class="input-hint">原型演示 · 识别基于内置文化敏感点词典</span>
-            <button class="analyze-btn" id="analyzeBtn">开始分析 →</button>
+            <span class="input-hint"><span id="modeBadge" class="mode-badge mode-fallback">探测中…</span></span>
+            <button class="analyze-btn" id="analyzeBtn">开始翻译 →</button>
           </div>
         </div>
       </div>
@@ -231,32 +160,125 @@
     <section class="results" id="results" hidden>
       <div class="container-narrow">
         <div class="result-head">
-          <div class="result-title">分析结果</div>
+          <div class="result-title">中英对照 · 对话改稿</div>
           <div class="result-stats" id="resultStats"></div>
         </div>
-        <div class="tabs" id="tabs">
-          <button class="tab active" data-tab="diag">诊断报告</button>
-          <button class="tab" data-tab="sug">改写建议</button>
-          <button class="tab" data-tab="lang">多语种输出</button>
-          <button class="tab" data-tab="text">原文高亮</button>
+
+        <div class="error-hint" id="translateError" hidden></div>
+
+        <div class="workspace" id="workspace">
+          <!-- 左栏：中英对照 -->
+          <div class="card">
+            <div class="col-title">
+              <h3><span class="dotc"></span>中英对照</h3>
+              <button class="save-btn" id="saveBtn" hidden>保存成稿</button>
+            </div>
+            <div id="compareView"></div>
+            <div class="legend">
+              <li><span class="sw sw-cultural"></span>文化负载词</li>
+              <li><span class="sw sw-metaphor"></span>隐喻意象</li>
+              <li><span class="sw sw-context"></span>强语境依赖</li>
+            </div>
+          </div>
+
+          <!-- 右栏：对话改稿 -->
+          <div class="card chat-panel">
+            <div class="col-title">
+              <h3><span class="dotc" style="background:var(--teal)"></span>对话改稿</h3>
+            </div>
+            <div class="chat-hint" id="chatHint">先翻译一篇文章，再点击左侧段落开始改稿。</div>
+            <div class="chat-messages" id="chatMessages"></div>
+            <div class="chat-input-row">
+              <textarea id="chatInput" rows="2" placeholder="例如：把这段的「火锅」翻成 hotpot，并说明是重庆麻辣……"></textarea>
+              <button class="chat-send" id="chatSend">发送</button>
+            </div>
+          </div>
         </div>
-        <div class="tab-panel active" id="panel-diag"></div>
-        <div class="tab-panel" id="panel-sug"></div>
-        <div class="tab-panel" id="panel-lang"></div>
-        <div class="tab-panel" id="panel-text"></div>
       </div>
     </section>
   </main>
 
-  <!-- ============ 页脚 ============ -->
+  <!-- ============ 设置弹层 ============ -->
+  <div class="modal" id="settingsModal" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3>偏好设置</h3>
+        <button class="icon-btn" id="closeSettings" aria-label="关闭">✕</button>
+      </div>
+      <p class="modal-sub">这些偏好会注入 AI 改稿的「用户画像」，让译文更贴合你的写作习惯。</p>
+
+      <div class="form-row">
+        <label class="form-label" for="setAudience">目标读者</label>
+        <select id="setAudience">
+          <option value="general">通用读者</option>
+          <option value="news">新闻读者</option>
+          <option value="academic">学术读者</option>
+          <option value="youth">年轻读者</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label class="form-label" for="setTone">语气偏好</label>
+        <select id="setTone">
+          <option value="faithful">忠实原文</option>
+          <option value="fluent">流畅归化</option>
+          <option value="concise">精简</option>
+        </select>
+      </div>
+
+      <div class="form-row form-check">
+        <input type="checkbox" id="setAnnotate" checked />
+        <label for="setAnnotate">文化词首见处加括号注释</label>
+      </div>
+
+      <div class="form-row form-check">
+        <input type="checkbox" id="setDomestication" checked />
+        <label for="setDomestication">归化倾向（贴近英语读者）</label>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-ghost btn-sm" id="closeSettings2">取消</button>
+        <button class="btn btn-primary btn-sm" id="saveSettingsBtn">保存</button>
+      </div>
+
+      <p class="modal-note">提示：AI 模式需在本机双击 <code>run-ai.bat</code> 启动本地脚本（详见 README）。</p>
+    </div>
+  </div>
+
+  <!-- ============ 登录遮罩 ============ -->
+  <div class="modal login-overlay" id="loginModal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3>🔒 访问需要密码</h3>
+      </div>
+      <p class="modal-sub">本工具内置了作者的 AI 密钥，请输入访问密码后使用。</p>
+      <div class="form-row">
+        <label class="form-label" for="loginPass">访问密码</label>
+        <input type="password" id="loginPass" autocomplete="off" placeholder="请输入访问密码" />
+      </div>
+      <div class="error-hint" id="loginError" hidden>密码错误，请重试。</div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="loginBtn">进入</button>
+      </div>
+    </div>
+  </div>
+
   <footer class="footer">
     <div class="footer-inner">
-      <p><strong style="color:var(--ink)">桥见中国</strong> · 面向内容创作者的 AI 跨文化编辑助手</p>
-      <p>了解项目背景与团队 → <a href="about.html">关于项目</a></p>
+      <p><strong style="color:var(--ink)">桥见川渝</strong> · 川渝中译英 AI 改稿助手</p>
+      <p>了解项目背景 → <a href="about.html">关于项目</a> · <a href="profile.html">我的画像</a></p>
     </div>
   </footer>
 
+  <script src="js/config.js"></script>
   <script src="js/data.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/prompts.js"></script>
+  <script src="js/segments.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/profile.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/chat.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
