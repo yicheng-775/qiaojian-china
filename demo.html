@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI 跨文化编辑辅助原型 · 桥见中国</title>
+  <meta name="description" content="桥见中国 AI 跨文化编辑辅助工具原型演示：原稿录入、文化敏感点识别、诊断报告、改写建议、多语种对照输出。" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* ============ 工具演示页专属样式 ============ */
+    body { background: #f3ede2; }
+
+    .toolbar {
+      position: sticky; top: 0; z-index: 60;
+      background: rgba(33, 29, 23, 0.97);
+      backdrop-filter: blur(10px);
+      color: #fbf7f0;
+    }
+    .toolbar-inner {
+      max-width: var(--maxw); margin: 0 auto; padding: 0 24px;
+      height: 64px; display: flex; align-items: center; gap: 28px;
+    }
+    .toolbar .brand { color: #fff; font-size: 16px; }
+    .toolbar .brand-mark { background: linear-gradient(135deg, var(--cinnabar), #e06a45); }
+    .toolbar-back { color: rgba(251,247,240,.7); font-size: 14px; transition: color .16s; }
+    .toolbar-back:hover { color: #fff; }
+
+    /* 步骤指示器 */
+    .stepper { flex: 1; display: flex; justify-content: center; gap: 4px; }
+    .step-dot {
+      display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 999px;
+      font-size: 13px; color: rgba(251,247,240,.55); white-space: nowrap; cursor: pointer;
+      transition: all .18s ease; border: 1px solid transparent;
+    }
+    .step-dot .n {
+      width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center;
+      background: rgba(251,247,240,.12); font-weight: 700; font-size: 12px; flex: none;
+    }
+    .step-dot.active { color: #fff; background: rgba(194,64,42,.25); border-color: rgba(194,64,42,.5); }
+    .step-dot.active .n { background: var(--cinnabar); }
+    .step-dot.done { color: rgba(251,247,240,.85); }
+    .step-dot.done .n { background: var(--teal-soft); }
+    .step-dot .lbl { display: inline; }
+    @media (max-width: 760px) { .step-dot .lbl { display: none; } }
+
+    /* 主内容 */
+    main { max-width: var(--maxw); margin: 0 auto; padding: 36px 24px 80px; }
+    .panel { display: none; }
+    .panel.active { display: block; animation: fadeUp .4s ease both; }
+
+    .panel-head { margin-bottom: 24px; }
+    .panel-head h2 { font-family: var(--font-serif); font-size: 26px; }
+    .panel-head p { color: var(--ink-soft); margin-top: 6px; font-size: 15px; }
+
+    .workspace {
+      display: grid; grid-template-columns: 1fr 300px; gap: 22px; align-items: start;
+    }
+    @media (max-width: 860px) { .workspace { grid-template-columns: 1fr; } }
+
+    .main-col { min-width: 0; }
+    .side-col { display: flex; flex-direction: column; gap: 18px; }
+
+    /* 步骤1 控件 */
+    .field-label { display: block; font-size: 13px; font-weight: 700; letter-spacing: .05em; color: var(--ink-soft); margin-bottom: 10px; }
+    .lang-chips { display: flex; gap: 10px; flex-wrap: wrap; }
+    .lang-chip {
+      display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 999px;
+      background: #fff; border: var(--border-strong); font-size: 14px; font-weight: 600; color: var(--ink);
+      transition: all .15s ease; cursor: pointer;
+    }
+    .lang-chip .ck { width: 18px; height: 18px; border-radius: 6px; border: 2px solid rgba(33,29,23,.3); display: grid; place-items: center; font-size: 12px; color: #fff; transition: all .15s; }
+    .lang-chip.on { border-color: var(--cinnabar); background: rgba(194,64,42,.06); }
+    .lang-chip.on .ck { background: var(--cinnabar); border-color: var(--cinnabar); }
+
+    textarea.origin {
+      width: 100%; min-height: 200px; padding: 18px; border-radius: var(--r-md);
+      border: var(--border-strong); background: #fff; font-family: var(--font-sans);
+      font-size: 16px; line-height: 1.9; color: var(--ink); resize: vertical;
+      transition: border .16s, box-shadow .16s;
+    }
+    textarea.origin:focus { outline: none; border-color: var(--cinnabar); box-shadow: var(--ring); }
+
+    .case-pick { display: flex; flex-direction: column; gap: 10px; }
+    .case-pick-item {
+      display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-radius: var(--r-md);
+      background: #fff; border: var(--border); cursor: pointer; transition: all .15s;
+    }
+    .case-pick-item:hover { border-color: var(--cinnabar); }
+    .case-pick-item.selected { border-color: var(--cinnabar); background: rgba(194,64,42,.05); box-shadow: var(--ring); }
+    .case-pick-item .cp-txt { flex: 1; }
+    .case-pick-item .cp-title { font-weight: 600; font-size: 15px; }
+    .case-pick-item .cp-sum { font-size: 13px; color: var(--ink-soft); }
+
+    /* 解析高亮 */
+    .text-stage {
+      position: relative; background: #fff; border: var(--border); border-radius: var(--r-lg);
+      padding: 26px 28px; box-shadow: var(--shadow-sm); min-height: 200px;
+    }
+    .text-stage .parsed {
+      font-size: 17px; line-height: 2.2; color: var(--ink); white-space: pre-wrap; word-break: break-word;
+    }
+    mark.hl { padding: 2px 6px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: box-shadow .15s; position: relative; }
+    mark.hl:hover { box-shadow: 0 0 0 2px rgba(33,29,23,.25); }
+    mark.hl.cultural { background: rgba(194,64,42,.16); color: #9c2f1d; border-bottom: 2px solid var(--cinnabar); }
+    mark.hl.metaphor { background: rgba(185,138,47,.20); color: #7c5a14; border-bottom: 2px solid var(--gold); }
+    mark.hl.context { background: rgba(27,94,90,.14); color: #14504c; border-bottom: 2px solid var(--teal); }
+    mark.hl.flash { animation: flashMark .8s ease; }
+    @keyframes flashMark { 0%,100% { box-shadow: 0 0 0 0 transparent; } 50% { box-shadow: 0 0 0 5px rgba(194,64,42,.35); } }
+
+    /* 统计小卡 */
+    .stat-card { background: #fff; border: var(--border); border-radius: var(--r-md); padding: 18px 20px; box-shadow: var(--shadow-sm); }
+    .stat-card .sc-num { font-family: var(--font-serif); font-size: 30px; font-weight: 700; color: var(--cinnabar); line-height: 1; }
+    .stat-card .sc-label { font-size: 13px; color: var(--ink-soft); margin-top: 6px; }
+    .legend { display: flex; flex-direction: column; gap: 8px; }
+    .legend li { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-soft); }
+    .legend .sw { width: 14px; height: 14px; border-radius: 4px; flex: none; }
+    .sw-cultural { background: rgba(194,64,42,.25); border: 1.5px solid var(--cinnabar); }
+    .sw-metaphor { background: rgba(185,138,47,.28); border: 1.5px solid var(--gold); }
+    .sw-context { background: rgba(27,94,90,.20); border: 1.5px solid var(--teal); }
+
+    /* 诊断报告 */
+    .diag-item {
+      background: #fff; border: var(--border); border-radius: var(--r-md); padding: 20px 22px;
+      margin-bottom: 14px; box-shadow: var(--shadow-sm); border-left: 4px solid var(--teal);
+      transition: box-shadow .15s;
+    }
+    .diag-item:hover { box-shadow: var(--shadow-md); }
+    .diag-item.high { border-left-color: var(--risk-high); }
+    .diag-item.mid { border-left-color: var(--risk-mid); }
+    .diag-item.low { border-left-color: var(--risk-low); }
+    .diag-top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+    .diag-term { font-size: 18px; font-weight: 700; font-family: var(--font-serif); }
+    .diag-reason { font-size: 14.5px; color: var(--ink-soft); line-height: 1.75; }
+
+    /* 改写建议 */
+    .sug-item {
+      background: #fff; border: var(--border); border-radius: var(--r-md); padding: 20px 22px;
+      margin-bottom: 16px; box-shadow: var(--shadow-sm);
+    }
+    .sug-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+    .sug-options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+    .sug-opt {
+      display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border-radius: var(--r-sm);
+      border: 1.5px solid rgba(33,29,23,.12); cursor: pointer; transition: all .15s; background: #fff;
+    }
+    .sug-opt:hover { border-color: var(--gold); }
+    .sug-opt.adopted { border-color: var(--cinnabar); background: rgba(194,64,42,.05); box-shadow: var(--ring); }
+    .sug-opt .radio { width: 18px; height: 18px; border-radius: 50%; border: 2px solid rgba(33,29,23,.3); flex: none; margin-top: 2px; display: grid; place-items: center; }
+    .sug-opt.adopted .radio { border-color: var(--cinnabar); }
+    .sug-opt.adopted .radio::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--cinnabar); }
+    .sug-opt .sug-text { font-size: 14.5px; color: var(--ink); line-height: 1.7; }
+
+    .edit-box { width: 100%; padding: 12px 14px; border-radius: var(--r-sm); border: var(--border-strong); font-size: 14.5px; line-height: 1.7; font-family: var(--font-sans); color: var(--ink); background: #fbf7f0; resize: vertical; }
+    .edit-box:focus { outline: none; border-color: var(--cinnabar); }
+
+    /* 多语种对照 */
+    .lang-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    @media (max-width: 720px) { .lang-grid { grid-template-columns: 1fr; } }
+    .lang-panel { background: #fff; border: var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); overflow: hidden; }
+    .lang-panel .lp-head { padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: var(--border); }
+    .lang-panel .lp-head .lp-lang { font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+    .lang-panel .lp-head .lp-flag { width: 28px; height: 20px; border-radius: 5px; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #fff; background: var(--cinnabar); }
+    .lang-panel .lp-body { padding: 20px; font-size: 15px; line-height: 2; color: var(--ink); }
+    .lang-panel .lp-strategy { padding: 12px 20px; background: var(--paper-deep); font-size: 12.5px; color: var(--ink-soft); border-top: var(--border); line-height: 1.6; }
+    .lang-panel .lp-strategy b { color: var(--cinnabar); }
+
+    /* 步骤导航按钮 */
+    .step-nav { display: flex; justify-content: space-between; margin-top: 32px; gap: 14px; }
+    .step-nav .spacer { flex: 1; }
+
+    /* 空状态 / 提示 */
+    .hint-box {
+      padding: 16px 18px; border-radius: var(--r-md); font-size: 13.5px; line-height: 1.7;
+      background: rgba(27,94,90,.07); border: 1px dashed rgba(27,94,90,.4); color: var(--teal);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================= 工具栏 ================= -->
+  <header class="toolbar">
+    <div class="toolbar-inner">
+      <a class="brand" href="index.html">
+        <span class="brand-mark">桥</span>
+        <span>桥见中国</span>
+      </a>
+      <div class="stepper" id="stepper"></div>
+      <a class="toolbar-back" href="index.html">← 返回首页</a>
+    </div>
+  </header>
+
+  <main>
+    <!-- ============ 步骤 1：项目设置 ============ -->
+    <section class="panel active" id="step-1">
+      <div class="panel-head">
+        <h2>① 新建项目 · 设定目标语言与原稿</h2>
+        <p>选择出海目标语言，通过粘贴中文原稿或选用内置示范案例开始。</p>
+      </div>
+      <div class="workspace">
+        <div class="main-col">
+          <div class="card" style="padding:26px 28px;">
+            <span class="field-label">目标翻译语言（可多选）</span>
+            <div class="lang-chips" id="langChips"></div>
+            <div style="height:24px;"></div>
+            <span class="field-label">中文原稿</span>
+            <textarea class="origin" id="originText" placeholder="在此粘贴你要出海传播的中文原稿，例如：「在中国，人们常说以茶代酒……」"></textarea>
+          </div>
+        </div>
+        <div class="side-col">
+          <div class="card" style="padding:20px 22px;">
+            <span class="field-label">选用内置示范案例</span>
+            <div class="case-pick" id="casePick"></div>
+          </div>
+          <div class="hint-box">
+            原型不接入外部 API，文化敏感点识别基于内置词典规则匹配，多语种译文为预先编校的演示样本。
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 步骤 2：原稿解析 ============ -->
+    <section class="panel" id="step-2">
+      <div class="panel-head">
+        <h2>② 原稿输入与解析</h2>
+        <p>系统自动扫描文本，高亮标记识别到的文化敏感点，点击高亮词可查看详情。</p>
+      </div>
+      <div class="workspace">
+        <div class="main-col">
+          <div class="text-stage">
+            <div class="parsed" id="parsedText"></div>
+          </div>
+        </div>
+        <div class="side-col">
+          <div class="stat-card"><div class="sc-num" id="statTotal">0</div><div class="sc-label">识别到文化敏感点</div></div>
+          <div class="card" style="padding:18px 20px;">
+            <span class="field-label">图例</span>
+            <ul class="legend">
+              <li><span class="sw sw-cultural"></span>文化负载词</li>
+              <li><span class="sw sw-metaphor"></span>隐喻意象</li>
+              <li><span class="sw sw-context"></span>强语境依赖表达</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 步骤 3：诊断报告 ============ -->
+    <section class="panel" id="step-3">
+      <div class="panel-head">
+        <h2>③ 文化适配诊断报告</h2>
+        <p>逐条展示敏感点的误读风险等级与具体成因分析，将隐性文化风险可视化。</p>
+      </div>
+      <div id="diagList"></div>
+    </section>
+
+    <!-- ============ 步骤 4：改写建议 ============ -->
+    <section class="panel" id="step-4">
+      <div class="panel-head">
+        <h2>④ 改写建议与编辑</h2>
+        <p>针对每一处风险点提供多套改写备选方案，支持人工编辑、选择性采纳，坚持人机协同。</p>
+      </div>
+      <div id="sugList"></div>
+    </section>
+
+    <!-- ============ 步骤 5：多语种输出 ============ -->
+    <section class="panel" id="step-5">
+      <div class="panel-head">
+        <h2>⑤ 多语种输出对照</h2>
+        <p>中、英、日、德四语文本并列展示，标注对应的文化处理策略，超越单纯字面翻译。</p>
+      </div>
+      <div id="langOutput"></div>
+    </section>
+
+    <!-- ============ 步骤导航 ============ -->
+    <div class="step-nav">
+      <button class="btn btn-ghost" id="prevBtn">← 上一步</button>
+      <div class="spacer"></div>
+      <button class="btn btn-primary" id="nextBtn">下一步 →</button>
+    </div>
+  </main>
+
+  <script src="js/data.js"></script>
+  <script src="js/demo.js"></script>
+</body>
+</html>

@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>桥见中国 · AI 赋能的当代中国民间叙事跨文化传播实践</title>
+  <meta name="description" content="桥见中国——AI 赋能的当代中国民间叙事跨文化传播实践。看见真实的当代中国民间生活，搭建中外民间文化沟通的桥梁。" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* ============ 落地页专属样式 ============ */
+
+    /* 顶部导航 */
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(251, 247, 240, 0.86);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(33, 29, 23, 0.08);
+    }
+    .nav-inner {
+      max-width: var(--maxw); margin: 0 auto; padding: 0 24px;
+      height: 66px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; }
+    .brand-mark {
+      width: 34px; height: 34px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--cinnabar), #e06a45);
+      display: grid; place-items: center; color: #fff; font-family: var(--font-serif);
+      font-size: 17px; font-weight: 700; box-shadow: var(--shadow-sm);
+    }
+    .nav-links { display: flex; align-items: center; gap: 26px; }
+    .nav-links a { font-size: 14.5px; color: var(--ink-soft); font-weight: 500; transition: color .16s; }
+    .nav-links a:hover { color: var(--cinnabar); }
+    .nav-cta { margin-left: 6px; }
+    .nav-burger { display: none; }
+
+    /* Hero */
+    .hero {
+      position: relative; overflow: hidden;
+      padding: 96px 0 120px;
+      background:
+        radial-gradient(1200px 500px at 80% -10%, rgba(230, 201, 135, 0.28), transparent 60%),
+        radial-gradient(900px 420px at 12% 0%, rgba(194, 64, 42, 0.10), transparent 55%),
+        var(--paper);
+    }
+    .hero-inner { position: relative; z-index: 2; max-width: var(--maxw); margin: 0 auto; padding: 0 24px; text-align: center; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 7px 16px; border-radius: 999px; font-size: 13px; font-weight: 600;
+      background: #fff; color: var(--cinnabar); box-shadow: var(--shadow-sm); border: var(--border);
+      margin-bottom: 28px;
+    }
+    .hero-title {
+      font-family: var(--font-serif);
+      font-size: clamp(56px, 11vw, 112px);
+      letter-spacing: 0.02em; line-height: 1.05; color: var(--ink);
+    }
+    .hero-title .accent { color: var(--cinnabar); }
+    .hero-sub {
+      margin-top: 12px; font-size: clamp(15px, 2.4vw, 19px);
+      letter-spacing: 0.28em; color: var(--ink-soft); font-weight: 500;
+    }
+    .hero-lead {
+      margin: 26px auto 0; max-width: 620px; font-size: 17px; color: var(--ink-soft);
+    }
+    .hero-lead strong { color: var(--ink); }
+    .hero-actions { margin-top: 36px; display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .hero-stats {
+      margin-top: 64px; display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 20px; max-width: 820px; margin-left: auto; margin-right: auto;
+    }
+    .hero-stat { text-align: center; }
+    .hero-stat .stat-num { display: block; }
+    .hero-stat .stat-label { display: block; margin-top: 8px; font-size: 13.5px; color: var(--ink-soft); }
+
+    /* 桥的 SVG 剪影 */
+    .hero-bridge { position: absolute; bottom: 0; left: 0; right: 0; z-index: 1; opacity: 0.9; }
+    .hero-bridge svg { display: block; width: 100%; height: 150px; }
+
+    /* 区块通用标题 */
+    .section-head { max-width: 720px; margin-bottom: 44px; }
+    .section-head.center { margin-left: auto; margin-right: auto; text-align: center; }
+
+    /* 痛点 */
+    .pains { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; }
+    .pain {
+      position: relative; padding: 30px 30px 30px 84px; background: #fff;
+      border: var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-sm);
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+    .pain:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+    .pain-index {
+      position: absolute; left: 24px; top: 30px; width: 44px; height: 44px;
+      border-radius: 12px; display: grid; place-items: center;
+      font-family: var(--font-serif); font-size: 20px; font-weight: 700; color: #fff;
+      background: linear-gradient(135deg, var(--cinnabar), #e06a45);
+    }
+    .pain h3 { font-size: 18px; margin-bottom: 10px; }
+    .pain p { color: var(--ink-soft); font-size: 15px; }
+    .pain .pain-note { margin-top: 12px; font-size: 13.5px; color: var(--ink-faint); font-style: italic; }
+
+    .gap-banner {
+      margin-top: 26px; padding: 22px 28px; border-radius: var(--r-lg);
+      background: linear-gradient(120deg, rgba(194, 64, 42, 0.08), rgba(185, 138, 47, 0.12));
+      border: 1px dashed rgba(194, 64, 42, 0.35);
+      display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    }
+    .gap-banner .gap-icon { font-size: 26px; }
+    .gap-banner p { color: var(--ink); font-size: 15px; flex: 1; min-width: 220px; }
+
+    /* 三位一体 */
+    .pillars { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+    .pillar { padding: 32px 28px; background: #fff; border: var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); }
+    .pillar-num {
+      font-family: var(--font-serif); font-size: 15px; font-weight: 700; color: var(--gold);
+      letter-spacing: 0.1em; margin-bottom: 14px;
+    }
+    .pillar h3 { font-size: 19px; margin-bottom: 12px; }
+    .pillar p { color: var(--ink-soft); font-size: 15px; }
+    .pillar .steps { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+    .pillar .step {
+      display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--ink-soft);
+    }
+    .pillar .step i {
+      font-style: normal; width: 20px; height: 20px; border-radius: 50%; flex: none;
+      background: rgba(27, 94, 90, 0.12); color: var(--teal); font-size: 12px; font-weight: 700;
+      display: grid; place-items: center;
+    }
+
+    /* 研究问题 */
+    .questions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+    .question {
+      padding: 26px 22px; background: #fff; border: var(--border); border-radius: var(--r-md);
+      box-shadow: var(--shadow-sm); position: relative; padding-top: 40px;
+    }
+    .question .q-tag {
+      position: absolute; top: -12px; left: 22px;
+      font-family: var(--font-serif); font-size: 13px; font-weight: 700; letter-spacing: 0.06em;
+      padding: 4px 12px; border-radius: 999px; background: var(--cinnabar); color: #fff;
+    }
+    .question h4 { font-size: 16px; margin-bottom: 8px; }
+    .question p { font-size: 13.5px; color: var(--ink-soft); line-height: 1.6; }
+
+    /* 理论 */
+    .theories { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+    .theory { padding: 28px; background: var(--paper-deep); border-radius: var(--r-lg); border: var(--border); }
+    .theory .t-name { font-size: 13px; font-weight: 700; color: var(--teal); letter-spacing: 0.06em; margin-bottom: 8px; }
+    .theory h3 { font-size: 18px; margin-bottom: 10px; }
+    .theory p { font-size: 14.5px; color: var(--ink-soft); }
+
+    /* 案例卡片（跳转 demo） */
+    .cases-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .case-card {
+      display: flex; flex-direction: column; padding: 30px; background: #fff;
+      border: var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-sm);
+      transition: transform .18s ease, box-shadow .18s ease; cursor: pointer;
+    }
+    .case-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
+    .case-card .case-lang {
+      display: flex; gap: 6px; margin-bottom: 16px;
+    }
+    .case-card .case-lang span {
+      font-size: 11.5px; font-weight: 700; width: 26px; height: 26px; border-radius: 8px;
+      display: grid; place-items: center; background: var(--paper-deep); color: var(--ink-soft);
+    }
+    .case-card h3 { font-size: 19px; margin-bottom: 8px; }
+    .case-card p { font-size: 14px; color: var(--ink-soft); flex: 1; margin-bottom: 18px; }
+    .case-card .case-arrow {
+      display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: var(--cinnabar);
+    }
+    .demo-cta { margin-top: 36px; text-align: center; }
+
+    /* 实施方案：调研阶段 */
+    .phases { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; counter-reset: phase; }
+    .phase {
+      padding: 26px 22px; background: #fff; border: var(--border); border-radius: var(--r-md);
+      box-shadow: var(--shadow-sm); position: relative; padding-top: 46px;
+    }
+    .phase .p-num {
+      position: absolute; top: -13px; left: 22px; width: 34px; height: 34px; border-radius: 50%;
+      background: var(--teal); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 15px;
+    }
+    .phase h4 { font-size: 16px; margin-bottom: 8px; }
+    .phase p { font-size: 13.5px; color: var(--ink-soft); }
+
+    /* 语料规模进度 */
+    .corpus-bar { margin-top: 28px; }
+    .corpus-track { position: relative; height: 14px; border-radius: 999px; background: var(--paper-deep); overflow: hidden; }
+    .corpus-fill {
+      position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px;
+      background: linear-gradient(90deg, var(--gold-light), var(--cinnabar));
+    }
+    .corpus-labels { display: flex; justify-content: space-between; margin-top: 12px; font-size: 13px; color: var(--ink-soft); }
+
+    /* 三层架构 */
+    .layers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 40px; }
+    .layer {
+      padding: 28px; background: linear-gradient(180deg, #fff, var(--paper-deep));
+      border: var(--border); border-radius: var(--r-lg);
+    }
+    .layer .l-tag { display: inline-block; font-size: 12px; font-weight: 700; color: var(--cinnabar); letter-spacing: 0.1em; margin-bottom: 10px; }
+    .layer h4 { font-size: 17px; margin-bottom: 8px; }
+    .layer p { font-size: 14px; color: var(--ink-soft); }
+
+    /* 成果 */
+    .outcomes { display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px; }
+    .outcome {
+      padding: 26px 18px; background: #fff; border: var(--border); border-radius: var(--r-md);
+      box-shadow: var(--shadow-sm); text-align: center;
+    }
+    .outcome .o-num { font-family: var(--font-serif); font-size: 26px; font-weight: 700; color: var(--cinnabar); }
+    .outcome p { margin-top: 8px; font-size: 13.5px; color: var(--ink-soft); line-height: 1.5; }
+
+    /* 团队 */
+    .team-summary {
+      display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px;
+    }
+    .team-card { padding: 30px; background: #fff; border: var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); }
+    .team-card h3 { font-size: 18px; margin-bottom: 16px; }
+    .team-major { display: flex; flex-wrap: wrap; gap: 10px; }
+    .team-major .tag { font-size: 13.5px; padding: 7px 14px; }
+    .team-meta { margin-top: 18px; display: flex; flex-direction: column; gap: 10px; }
+    .team-meta li { display: flex; gap: 12px; font-size: 14.5px; color: var(--ink-soft); }
+    .team-meta li b { color: var(--ink); font-weight: 600; min-width: 84px; }
+
+    /* 参考文献 */
+    .refs { background: #fff; border: var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); padding: 34px 38px; }
+    .refs ol { padding-left: 22px; list-style: decimal; }
+    .refs li { font-size: 14px; color: var(--ink-soft); margin-bottom: 10px; line-height: 1.6; }
+    .refs li:last-child { margin-bottom: 0; }
+
+    /* 页脚 */
+    .footer { padding: 56px 0 40px; background: var(--ink); color: rgba(251, 247, 240, 0.72); }
+    .footer-inner { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; }
+    .footer .brand { color: #fff; }
+    .footer .brand-mark { background: linear-gradient(135deg, var(--cinnabar), #e06a45); }
+    .footer p { font-size: 13.5px; }
+
+    @media (max-width: 900px) {
+      .hero-stats { grid-template-columns: repeat(2, 1fr); }
+      .pains, .pillars, .theories, .cases-grid, .layers, .outcomes { grid-template-columns: 1fr 1fr; }
+      .questions, .phases { grid-template-columns: 1fr 1fr; }
+      .team-summary { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+      .nav-burger { display: block; font-size: 24px; background: none; border: none; color: var(--ink); }
+    }
+    @media (max-width: 560px) {
+      .pains, .pillars, .theories, .cases-grid, .layers, .outcomes,
+      .questions, .phases, .hero-stats { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================= 导航 ================= -->
+  <header class="nav">
+    <div class="nav-inner">
+      <a class="brand" href="#top">
+        <span class="brand-mark">桥</span>
+        <span>桥见中国 <span style="font-weight:400;color:var(--ink-faint);font-size:13px;">CHINA-BRIDGE</span></span>
+      </a>
+      <nav class="nav-links">
+        <a href="#about">项目概况</a>
+        <a href="#pains">选题定位</a>
+        <a href="#solution">总体思路</a>
+        <a href="#prototype">原型演示</a>
+        <a href="#plan">实施方案</a>
+        <a href="#team">团队</a>
+      </nav>
+      <a class="btn btn-primary btn-sm nav-cta" href="demo.html">进入原型演示 →</a>
+      <button class="nav-burger" aria-label="菜单">☰</button>
+    </div>
+  </header>
+
+  <!-- ================= Hero ================= -->
+  <section class="hero" id="top">
+    <div class="hero-inner">
+      <span class="hero-badge">✦ 新文科大赛 · 文史哲类 · 软件开发类</span>
+      <h1 class="hero-title">桥见<span class="accent">中国</span></h1>
+      <p class="hero-sub">CHINA-BRIDGE · AI 赋能的当代中国民间叙事跨文化传播实践</p>
+      <p class="hero-lead">
+        看见真实的<strong>当代中国民间生活</strong>，搭建中外民间文化沟通的<strong>桥梁</strong>。
+        以 AI 辅助内容创作者，让中国故事在跨文化传播中<strong>少一分折扣，多一分共情</strong>。
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="demo.html">体验 AI 跨文化编辑原型 →</a>
+        <a class="btn btn-ghost" href="#pains">了解项目方案</a>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><span class="stat-num">12</span><span class="stat-label">跨专业团队</span></div>
+        <div class="hero-stat"><span class="stat-num">80–100</span><span class="stat-label">条多语种语料</span></div>
+        <div class="hero-stat"><span class="stat-num">4</span><span class="stat-label">语言（中英日德）</span></div>
+        <div class="hero-stat"><span class="stat-num">3</span><span class="stat-label">阶段传播路径</span></div>
+      </div>
+    </div>
+    <div class="hero-bridge" aria-hidden="true">
+      <svg viewBox="0 0 1440 150" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="bridgeGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#c2402a"/>
+            <stop offset="1" stop-color="#e06a45"/>
+          </linearGradient>
+        </defs>
+        <!-- 水面 -->
+        <rect x="0" y="120" width="1440" height="30" fill="rgba(27,94,90,0.10)"/>
+        <!-- 拱桥 -->
+        <path d="M120,130 Q720,-40 1320,130" fill="none" stroke="url(#bridgeGrad)" stroke-width="26" stroke-linecap="round"/>
+        <path d="M120,130 Q720,-20 1320,130" fill="none" stroke="url(#bridgeGrad)" stroke-width="3" opacity="0.55"/>
+        <!-- 桥面点缀 -->
+        <circle cx="300" cy="96" r="5" fill="#c2402a" opacity="0.6"/>
+        <circle cx="560" cy="66" r="5" fill="#c2402a" opacity="0.6"/>
+        <circle cx="880" cy="66" r="5" fill="#c2402a" opacity="0.6"/>
+        <circle cx="1140" cy="96" r="5" fill="#c2402a" opacity="0.6"/>
+        <!-- 倒影 -->
+        <path d="M320,132 Q720,80 1120,132" fill="none" stroke="rgba(194,64,42,0.18)" stroke-width="8" stroke-linecap="round"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ================= 项目概况 ================= -->
+  <section class="section" id="about">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">项目概况</span>
+        <h2 class="section-title">一座桥，连接民间叙事与海外受众</h2>
+        <p class="section-lead">
+          面向海外普通受众，聚焦市井生活、青年亚文化、非物质文化遗产、文旅故事等非时政题材，
+          开展中国民间叙事的文化转译与传播实践。
+        </p>
+      </div>
+      <div class="team-summary">
+        <div class="team-card">
+          <h3>项目定位</h3>
+          <p style="color:var(--ink-soft);font-size:15px;line-height:1.8;">
+            本项目隶属<strong style="color:var(--ink)">文史哲类</strong>，覆盖中华文化传承创新、数字人文、语言智能、国际传播等研究方向，
+            实践形式归类为<strong style="color:var(--ink)">软件开发类</strong>，侧重原型开发与传播实践验证。
+            项目名称「桥见」取谐音「瞧见」，双关「搭建沟通之桥」与「看见真实民间生活」。
+          </p>
+          <div class="team-meta">
+            <li><b>团队规模</b> 12 人（本科生 10 人 + 研究生 2 人，研究生占比约 16.7%）</li>
+            <li><b>专业构成</b> 新闻传播、英语、日语、德语、翻译硕士（MTI）、外国语言文学</li>
+            <li><b>指导教师</b> 新闻学院 + 外国语学院各一名导师</li>
+          </div>
+        </div>
+        <div class="team-card">
+          <h3>学科矩阵</h3>
+          <div class="team-major">
+            <span class="tag tag-red">新闻传播</span>
+            <span class="tag tag-teal">英语</span>
+            <span class="tag tag-gold">日语</span>
+            <span class="tag tag-gray">德语</span>
+            <span class="tag tag-red">翻译硕士 MTI</span>
+            <span class="tag tag-teal">外国语言文学</span>
+          </div>
+          <p style="margin-top:20px;color:var(--ink-soft);font-size:14.5px;line-height:1.8;">
+            跨语言、跨文化的多语种团队，为「中—英—日—德」四语对照输出与跨文化误读案例研究提供学科支撑。
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 选题定位（痛点） ================= -->
+  <section class="section" id="pains" style="background:var(--paper-deep);">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">选题定位</span>
+        <h2 class="section-title">文化折扣：跨文化传播的四重现实矛盾</h2>
+        <p class="section-lead">
+          对外中国民间文化叙事创作，除文本翻译层面问题外，还存在工具能力缺陷、模型固有文化缺陷与学术数据瓶颈四重矛盾。
+        </p>
+      </div>
+      <div class="pains">
+        <div class="pain reveal">
+          <span class="pain-index">A</span>
+          <h3>文本创作层面 · 跨文化误读频发</h3>
+          <p>文化负载词直接直译、本土语境依赖表达未经调适、自带隐含价值预设，引发海外受众理解偏差。</p>
+          <p class="pain-note">高低语境编码—解码错位带来的文化转译难题</p>
+        </div>
+        <div class="pain reveal">
+          <span class="pain-index">B</span>
+          <h3>现有工具层面 · 重翻译轻适配</h3>
+          <p>主流翻译与 AI 写作工具只追求字面准确，缺少文化适配环节，无法主动识别符号、习俗、禁忌等误解风险。</p>
+          <p class="pain-note">无法提供适配海外受众认知习惯的改写方案</p>
+        </div>
+        <div class="pain reveal">
+          <span class="pain-index">C</span>
+          <h3>大模型固有局限 · 缺文化意识</h3>
+          <p>大语言模型在跨文化处理上存在系统性短板，可能输出英语中心主义或引入外来文化偏见，反而加剧沟通障碍。</p>
+          <p class="pain-note">DaKultur 等研究证实大模型的文化适配不足</p>
+        </div>
+        <div class="pain reveal">
+          <span class="pain-index">D</span>
+          <h3>学术实践瓶颈 · 语料获取难</h3>
+          <p>人工构建高质量文化适配标注数据集成本高、难度大，跨文化文本润色研究推进缓慢。</p>
+          <p class="pain-note">Nature 子刊指出高质量标注语料是核心制约</p>
+        </div>
+      </div>
+      <div class="gap-banner">
+        <span class="gap-icon">⚠️</span>
+        <p><strong>传播落地堵点：</strong>即便文本完成语言与文化优化，民间叙事内容仍缺少低成本可落地的出海传播路径，优质文本难以触达海外受众，产出与传播效果相互脱节。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 总体思路 ================= -->
+  <section class="section" id="solution">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">总体思路</span>
+        <h2 class="section-title">三位一体的实践方案</h2>
+        <p class="section-lead">
+          本项目并非单纯技术原型开发，而是构建「内容筛选标准 + AI 跨文化编辑辅助原型 + 圈层式海外传播路径」三位一体的实践方案。
+        </p>
+      </div>
+      <div class="pillars">
+        <div class="pillar">
+          <div class="pillar-num">01 · 内容筛选</div>
+          <h3>内容筛选机制</h3>
+          <p>划分「当代生活」「传统文化」两大选材板块，全程规避时政、制度对比与意识形态强相关内容。</p>
+          <div class="steps">
+            <div class="step"><i>✓</i>当代生活：市井日常、青年生活、普通人生命故事</div>
+            <div class="step"><i>✓</i>传统文化：茶、瓷器、传统节日等有国际认知基础的符号</div>
+            <div class="step"><i>✓</i>共通精神内核：优先选择中外文化共有情感共鸣的主题</div>
+          </div>
+        </div>
+        <div class="pillar">
+          <div class="pillar-num">02 · AI 工具</div>
+          <h3>AI 辅助工具原型</h3>
+          <p>面向撰稿创作者，在文本生产环节前置识别文化敏感点与潜在误读风险，给出可落地的改写建议。</p>
+          <div class="steps">
+            <div class="step"><i>✓</i>前置识别文化敏感点、误读风险</div>
+            <div class="step"><i>✓</i>提供多套可落地改写方案</div>
+            <div class="step"><i>✓</i>坚持人机协同，弱化 AI 偏见</div>
+          </div>
+        </div>
+        <div class="pillar">
+          <div class="pillar-num">03 · 传播路径</div>
+          <h3>分层传播路径</h3>
+          <p>设计三阶段圈层式海外传播路径，让优质文本真正触达海外普通受众。</p>
+          <div class="steps">
+            <div class="step"><i>①</i>种子渗透：来华留学生参与原型试用与文本反馈</div>
+            <div class="step"><i>②</i>口碑裂变：依托留学生海外社交网络自发扩散</div>
+            <div class="step"><i>③</i>官方补位：海外社交平台轻量化投放</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 研究问题 ================= -->
+  <section class="section" style="background:var(--paper-deep);">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">研究问题</span>
+        <h2 class="section-title">递进式研究问题</h2>
+        <p class="section-lead">先厘清误读类型，再验证 AI 干预的实际效果，形成「识别现实问题 — 验证解决对策」的完整实践链条。</p>
+      </div>
+      <div class="questions">
+        <div class="question"><span class="q-tag">1.1</span><h4>诊断什么</h4><p>哪些类型的文化表达最容易被外国人误读？文化负载词 / 语境表达 / 价值预设。</p></div>
+        <div class="question"><span class="q-tag">1.2</span><h4>为什么不够</h4><p>现有 AI 工具（机器翻译、大模型）在文化适配方面存在哪些系统性缺陷？</p></div>
+        <div class="question"><span class="q-tag">1.3</span><h4>怎么改</h4><p>针对不同类型的文化表达，应采用什么样的跨文化改写策略？</p></div>
+        <div class="question"><span class="q-tag">1.4</span><h4>做成什么样</h4><p>面向内容创作者，工具的交互流程和功能形态应该是怎样的？</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 理论 ================= -->
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">理论基础</span>
+        <h2 class="section-title">三大核心理论框架</h2>
+      </div>
+      <div class="theories">
+        <div class="theory">
+          <div class="t-name">E. T. HALL</div>
+          <h3>高低语境理论</h3>
+          <p>解释高语境文化产出的文本，在低语境文化接收场景下，文化负载词与语境依附表达产生误读的底层成因。</p>
+        </div>
+        <div class="theory">
+          <div class="t-name">J. W. BERRY</div>
+          <h3>跨文化适应理论</h3>
+          <p>以二维适应模型分析海外受众接触文化适配文本时的接受与解读过程，为传播效果评估提供参照。</p>
+        </div>
+        <div class="theory">
+          <div class="t-name">叙事传播理论</div>
+          <h3>民间微观叙事</h3>
+          <p>支撑「民间微观叙事替代宏大叙事」的内容表达策略，探讨普通人故事在跨文化场景下的共情机制。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 原型演示 ================= -->
+  <section class="section" id="prototype" style="background:linear-gradient(180deg, var(--paper-deep), var(--paper));">
+    <div class="container">
+      <div class="section-head center">
+        <span class="eyebrow" style="justify-content:center;">原型演示</span>
+        <h2 class="section-title">AI 跨文化编辑辅助原型</h2>
+        <p class="section-lead" style="margin-left:auto;margin-right:auto;">
+          五步交互流程：原稿录入 → 敏感点高亮 → 诊断报告 → 改写建议 → 多语种对照输出。选择下方案例进入完整演示。
+        </p>
+      </div>
+      <div class="cases-grid" id="caseGrid"><!-- 由 JS 渲染 --></div>
+      <div class="demo-cta">
+        <a class="btn btn-primary" href="demo.html">打开完整工具演示 →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 实施方案 ================= -->
+  <section class="section" id="plan">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">实施方案</span>
+        <h2 class="section-title">调研实践 · 四阶段推进</h2>
+        <p class="section-lead">调研工作同时服务于语料库迭代、问卷访谈数据采集，为原型开发提供现实依据。</p>
+      </div>
+      <div class="phases">
+        <div class="phase"><span class="p-num">1</span><h4>前期筹备</h4><p>搭建 30–50 条初步语料框架，完成访谈提纲、问卷初稿，调研工具包定稿。</p></div>
+        <div class="phase"><span class="p-num">2</span><h4>首轮调研</h4><p>完成 5–8 场来华留学生半结构化访谈，投放初版问卷，留存原始记录。</p></div>
+        <div class="phase"><span class="p-num">3</span><h4>迭代优化</h4><p>基于首轮发现扩充语料至 60–80 条，迭代问卷核心题目，完成剩余访谈。</p></div>
+        <div class="phase"><span class="p-num">4</span><h4>收尾汇总</h4><p>语料打磨至终版 80–100 条，完成数据分析，输出完整调研报告。</p></div>
+      </div>
+
+      <div class="corpus-bar">
+        <div style="display:flex;justify-content:space-between;margin-bottom:10px;font-size:14px;color:var(--ink-soft);">
+          <span>语料库规模演进</span><span style="color:var(--cinnabar);font-weight:600;">30 → 80–100 条</span>
+        </div>
+        <div class="corpus-track">
+          <div class="corpus-fill" style="width:100%;"></div>
+        </div>
+        <div class="corpus-labels">
+          <span>筹备 30–50</span><span>迭代 60–80</span><span>终版 80–100</span>
+        </div>
+      </div>
+
+      <h3 style="font-family:var(--font-serif);font-size:24px;margin:56px 0 8px;">原型三层架构</h3>
+      <p style="color:var(--ink-soft);font-size:15px;max-width:680px;">界面层、语料层、案例层协同，实现从交互到数据到示范的完整闭环。</p>
+      <div class="layers">
+        <div class="layer">
+          <span class="l-tag">INTERFACE</span>
+          <h4>界面层</h4>
+          <p>完整实现原稿输入、风险高亮、诊断报告、改写编辑、多语种对照输出全流程交互页面。</p>
+        </div>
+        <div class="layer">
+          <span class="l-tag">CORPUS</span>
+          <h4>语料层</h4>
+          <p>80–100 条中外对照样本，按典型误读案例、文化负载词、隐喻表达、强语境依赖表达分类标注，来源可追溯。</p>
+        </div>
+        <div class="layer">
+          <span class="l-tag">CASE</span>
+          <h4>案例层</h4>
+          <p>3–5 组「原稿—适配改写」对照示范案例：英文 2–3 组，日语、德语各 1–2 组，用于答辩演示。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 成果 ================= -->
+  <section class="section" style="background:var(--paper-deep);">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">预期成果</span>
+        <h2 class="section-title">大赛直接产出成果</h2>
+      </div>
+      <div class="outcomes">
+        <div class="outcome"><span class="o-num">①</span><p>完整实践创新报告</p></div>
+        <div class="outcome"><span class="o-num">②</span><p>Figma 交互演示原型</p></div>
+        <div class="outcome"><span class="o-num">③</span><p>80–100 条多语种对照标注语料库</p></div>
+        <div class="outcome"><span class="o-num">④</span><p>原稿—适配改写对照案例集</p></div>
+        <div class="outcome"><span class="o-num">⑤</span><p>调研分析报告</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 团队 ================= -->
+  <section class="section" id="team">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">团队</span>
+        <h2 class="section-title">跨专业 · 跨语言的协作团队</h2>
+      </div>
+      <div class="team-summary">
+        <div class="team-card">
+          <h3>本科生团队（10 人）</h3>
+          <p style="color:var(--ink-soft);font-size:14.5px;line-height:1.8;">
+            按照英语、日语、德语语种分组，搜集多语种下跨文化传播实践案例与真实文本误读案例，
+            承担跨文化传播实践与语料采集工作。
+          </p>
+          <div class="team-major" style="margin-top:16px;">
+            <span class="tag tag-red">新闻传播</span>
+            <span class="tag tag-teal">英语</span>
+            <span class="tag tag-gold">日语</span>
+            <span class="tag tag-gray">德语</span>
+          </div>
+        </div>
+        <div class="team-card">
+          <h3>研究生团队（2 人）</h3>
+          <p style="color:var(--ink-soft);font-size:14.5px;line-height:1.8;">
+            负责梳理跨文化传播理论脉络、AI 辅助文本写作与跨文化编辑相关研究现状，
+            重点关注大模型跨文化偏见、文化适配语料构建等前沿文献。
+          </p>
+          <div class="team-major" style="margin-top:16px;">
+            <span class="tag tag-red">翻译硕士 MTI</span>
+            <span class="tag tag-teal">外国语言文学</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 参考文献 ================= -->
+  <section class="section" style="background:var(--paper-deep);">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow">参考文献</span>
+        <h2 class="section-title">核心文献</h2>
+      </div>
+      <div class="refs">
+        <ol>
+          <li>HALL E T. Beyond Culture [M]. New York: Doubleday, 1976.</li>
+          <li>BERRY J W. Acculturation: Living successfully in two cultures [J]. International Journal of Intercultural Relations, 2005, 29 (6): 697–712.</li>
+          <li>单波. 跨文化传播的基本理论命题 [J]. 华中师范大学学报 (人文社会科学版), 2011, 50 (01): 103–113.</li>
+          <li>段鹏, 张倩. 后疫情时代我国国际传播话语体系建设的价值维度与路径重构 [J]. 新闻界, 2021 (03): 28–36.</li>
+          <li>Müller-Eberstein M, Zhang M, Bassignana E, et al. DaKultur: Evaluating the Cultural Awareness of Language Models for Danish with Native Speakers [C]//Proceedings of the 3rd Workshop on Cross-Cultural Considerations in NLP. 2025: 50–58.</li>
+          <li>ZHANG Y, SUN H, DONG N, et al. Progress and challenges in neural text polishing [J]. Nature Machine Intelligence, 2023, 5 (10): 1089–1101.</li>
+          <li>胡文仲. 跨文化交际学概论 [M]. 北京: 外语教学与研究出版社, 2019.</li>
+          <li>吴飞. 叙事传播: 概念溯源、理论内涵与未来议题 [J]. 新闻与写作, 2022 (02): 35–46.</li>
+          <li>张西平. 中国文化对外传播的历史反思与当代路径 [J]. 国际汉学, 2022 (02): 5–13.</li>
+          <li>Sun Y, Yang H, Wang Y, et al. Bridging human judgment and AI precision: a step toward intercultural competence in text refinement [J]. Humanit Soc Sci Commun 13, 274 (2026).</li>
+          <li>陈卫君. 目的论视角下贺州文庙旅游语言景观大语言模型英译错误分析 [C]// 外语教育与翻译发展创新研究 (18). 2025: 10–13.</li>
+          <li>Bojana Budimir. The Challenge of Translating Culture-Specific Items: Evaluating MT and LLMs Compared to Human Translators [C]//Proceedings of Machine Translation Summit XX: Volume 1, pages 455–467.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 页脚 ================= -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <a class="brand" href="#top">
+        <span class="brand-mark">桥</span>
+        <span>桥见中国 <span style="font-weight:400;opacity:.6;font-size:13px;">CHINA-BRIDGE</span></span>
+      </a>
+      <p>AI 赋能的当代中国民间叙事跨文化传播实践 · 新文科大赛项目</p>
+    </div>
+  </footer>
+
+  <script src="js/data.js"></script>
+  <script>
+    // 渲染案例卡片
+    (function () {
+      const grid = document.getElementById("caseGrid");
+      const langFlags = { 中: "中", 英: "EN", 日: "日", 德: "DE" };
+      if (!grid) return;
+      grid.innerHTML = QJC.cases.map(function (c, i) {
+        const langs = c.targets.map(t => '<span>' + (langFlags[t.lang] || t.lang) + '</span>').join("");
+        return (
+          '<div class="case-card" onclick="location.href=\'demo.html?case=' + c.id + '\'" style="animation-delay:' + (i * 90) + 'ms">' +
+            '<div class="case-lang">' + langs + '</div>' +
+            '<span class="tag ' + c.tagClass + '" style="align-self:flex-start;margin-bottom:12px;">' + c.tag + '</span>' +
+            '<h3>' + c.title + '</h3>' +
+            '<p>' + c.summary + '</p>' +
+            '<span class="case-arrow">查看原稿与四语改写 →</span>' +
+          '</div>'
+        );
+      }).join("");
+    })();
+  </script>
+</body>
+</html>
