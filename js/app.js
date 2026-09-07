@@ -73,6 +73,92 @@
     $("resultStats").innerHTML = html;
   }
 
+  /* ---------- 工作台持久化：跳页不丢原稿/译文/对话 ---------- */
+  function persistWorkspace() {
+    if (!state.source) return;
+    QJC.storage.saveWorkspace({
+      source: state.source,
+      caseId: state.caseId,
+      segments: state.segments,
+      selectedIds: state.selectedIds,
+      lastClassify: state.lastClassify,
+      chatHistory: QJC.chat.getMessages(),
+      savedAt: Date.now()
+    });
+  }
+
+  function restoreWorkspace() {
+    var ws = QJC.storage.loadWorkspace();
+    if (!ws || !ws.source) return false;
+    $("originText").value = ws.source;
+    state.source = ws.source;
+    state.caseId = ws.caseId || null;
+    state.segments = ws.segments || [];
+    state.matches = findMatches(ws.source);
+    state.selectedIds = ws.selectedIds || [];
+    state.lastClassify = ws.lastClassify || null;
+    state.analyzed = state.segments.length > 0;
+
+    if (state.segments.length) {
+      $("workspace").hidden = false;
+      $("results").hidden = false;
+      $("saveBtn").hidden = false;
+      renderStats();
+      QJC.render.renderCompare(state, $("compareView"));
+    }
+    QJC.chat.restoreMessages(ws.chatHistory || []);
+    return true;
+  }
+
+  /* ---------- 导出中英对照 .txt ---------- */
+  function exportDraft() {
+    if (!state.analyzed || !state.segments.length) { alert("暂无译文可导出，请先翻译。"); return; }
+    var lines = ["桥见川渝 · 翻译成稿", "导出时间：" + new Date().toLocaleString(), ""];
+    state.segments.forEach(function (s, i) {
+      lines.push("【第 " + (i + 1) + " 段】");
+      lines.push("中文：" + s.source);
+      lines.push("英文：" + (s.translation || "（未翻译）"));
+      lines.push("");
+    });
+    var text = lines.join("\n");
+    var blob = new Blob(["﻿" + text], { type: "text/plain;charset=utf-8" }); // BOM 防中文乱码
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "桥见川渝-翻译成稿.txt";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  /* ---------- 文件上传：.txt / .docx（Word） ---------- */
+  function handleFileUpload(file) {
+    if (!file) return;
+    var name = (file.name || "").toLowerCase();
+    if (name.slice(-4) === ".txt") {
+      var r = new FileReader();
+      r.onload = function () { $("originText").value = r.result; $("originText").focus(); };
+      r.onerror = function () { alert("文件读取失败，请重试。"); };
+      r.readAsText(file, "utf-8");
+    } else if (name.slice(-5) === ".docx") {
+      if (typeof mammoth === "undefined") { alert("Word 解析组件未加载，请刷新页面后重试。"); return; }
+      var fr = new FileReader();
+      fr.onload = function () {
+        mammoth.extractRawText({ arrayBuffer: fr.result })
+          .then(function (result) {
+            var t = (result.value || "").trim();
+            if (!t) { alert("未能从该 Word 文档中提取到文本。"); return; }
+            $("originText").value = t;
+            $("originText").focus();
+          })
+          .catch(function (err) { alert("Word 解析失败：" + (err && err.message ? err.message : err)); });
+      };
+      fr.onerror = function () { alert("文件读取失败，请重试。"); };
+      fr.readAsArrayBuffer(file);
+    } else {
+      alert("仅支持 .txt 或 .docx 文档（老式 .doc 请先在 Word 里另存为 .docx）。");
+    }
+  }
+
   /* ---------- 主流程：分析 ---------- */
   function analyze() {
     var text = $("originText").value.trim();
@@ -97,6 +183,7 @@
     renderStats();
     QJC.render.renderCompare(state, $("compareView"));
     $("workspace").scrollIntoView({ behavior: "smooth", block: "start" });
+    persistWorkspace(); // 先存原稿（译文尚未生成）
 
     var dictHints = state.matches.map(function (m) {
       return { term: m.term, suggestions: m.suggestions, reason: m.reason };
@@ -106,17 +193,20 @@
     QJC.api.translate(state.segments, profileContext, dictHints)
       .then(function () {
         QJC.render.renderCompare(state, $("compareView"));
+        persistWorkspace(); // 存译文
         // AI 模式：并行分类，累积画像
         if (QJC.api.isAI()) {
           QJC.api.classify(state.source).then(function (result) {
             state.lastClassify = result;
             QJC.profile.recordClassification(result);
             renderStats();
+            persistWorkspace(); // 分类结果并入工作台
           }).catch(function () { /* 分类失败不阻塞 */ });
         }
       })
       .catch(function (err) {
         QJC.render.renderCompare(state, $("compareView"));
+        persistWorkspace(); // 翻译失败也保留原稿与对话
         var hint = $("translateError");
         if (hint) {
           hint.hidden = false;
@@ -148,6 +238,7 @@
       sourceExcerpt: state.source.slice(0, 200),
       finalTranslation: finalText,
       segments: state.segments,
+      chatHistory: QJC.chat.getMessages(),
       createdAt: Date.now()
     };
     var hist = QJC.storage.loadHistory();
@@ -230,11 +321,23 @@
       messagesEl: $("chatMessages"),
       inputEl: $("chatInput"),
       sendEl: $("chatSend"),
-      hintEl: $("chatHint")
+      hintEl: $("chatHint"),
+      onStateChange: persistWorkspace
     });
+
+    // 上传 / 导出按钮
+    $("uploadBtn").addEventListener("click", function () { $("fileInput").click(); });
+    $("fileInput").addEventListener("change", function (e) {
+      handleFileUpload(e.target.files[0]);
+      e.target.value = "";
+    });
+    $("exportBtn").addEventListener("click", exportDraft);
 
     // 探测 AI 代理并更新徽标
     QJC.api.probeAI().then(function (ok) { renderModeBadge(ok); });
+
+    // 恢复上次工作台（原稿/译文/对话），跳页回来不丢
+    restoreWorkspace();
   }
 
   document.addEventListener("DOMContentLoaded", init);

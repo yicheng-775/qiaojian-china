@@ -14,6 +14,7 @@ QJC.chat = (function () {
   var messagesEl, inputEl, sendEl, hintEl;
   var messages = [];       // 当前文章的对话历史
   var roundCount = 0;      // 对话轮次（触发偏好提取）
+  var onStateChange = null; // 状态变化回调（供 app.js 持久化工作台）
 
   function esc(s) {
     return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -26,6 +27,7 @@ QJC.chat = (function () {
     inputEl = opts.inputEl;
     sendEl = opts.sendEl;
     hintEl = opts.hintEl;
+    onStateChange = opts.onStateChange || null;
 
     sendEl.addEventListener("click", send);
     inputEl.addEventListener("keydown", function (e) {
@@ -51,6 +53,20 @@ QJC.chat = (function () {
     if (!appState) return;
     appState.selectedIds = [id];
     QJC.render.renderCompare(appState, compareContainer);
+    updateHint();
+    notify();
+  }
+
+  function notify() { if (onStateChange) onStateChange(); }
+
+  /* 供 app.js 持久化/恢复：当前对话历史 */
+  function getMessages() { return messages; }
+  function restoreMessages(arr) {
+    messages = (arr || []).slice();
+    if (messagesEl) {
+      messagesEl.innerHTML = "";
+      messages.forEach(function (m) { appendMessage(m.role, m.content); });
+    }
     updateHint();
   }
 
@@ -128,6 +144,7 @@ QJC.chat = (function () {
         appendMessage("assistant", result.reply || "已更新。");
         messages.push({ role: "assistant", content: result.reply || "已更新。" });
         roundCount++;
+        notify();
         maybeExtractPrefs();
       })
       .catch(function (err) {
@@ -157,6 +174,8 @@ QJC.chat = (function () {
     reset: reset,
     selectParagraph: selectParagraph,
     updateHint: updateHint,
-    appendMessage: appendMessage
+    appendMessage: appendMessage,
+    getMessages: getMessages,
+    restoreMessages: restoreMessages
   };
 })();

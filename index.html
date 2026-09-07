@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>桥见川渝 · AI 改稿助手</title>
   <meta name="description" content="面向内容创作者的川渝中译英 AI 改稿助手：粘贴中文原稿，自动识别文化表达、生成英文译文，并可针对某段对话协商改稿。" />
-  <link rel="stylesheet" href="css/style.css?v=5" />
+  <link rel="stylesheet" href="css/style.css?v=6" />
   <style>
     body { background: var(--paper); }
 
@@ -103,6 +103,14 @@
     .save-btn:hover { color: var(--cinnabar); border-color: var(--cinnabar); }
     .save-btn:disabled { opacity: .6; cursor: default; }
 
+    .input-btns { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .upload-btn {
+      padding: 13px 22px; border-radius: 999px; border: var(--border-strong); background: #fff;
+      font-size: 15px; font-weight: 600; color: var(--ink-soft); cursor: pointer; transition: all .15s;
+    }
+    .upload-btn:hover { color: var(--cinnabar); border-color: var(--cinnabar); }
+    .col-actions { display: flex; gap: 8px; }
+
     .error-hint { padding: 12px 16px; border-radius: var(--r-md); font-size: 13px; line-height: 1.6; background: rgba(194,64,42,.06); border: 1px dashed rgba(194,64,42,.4); color: var(--cinnabar); margin-bottom: 14px; }
 
     @media (max-width: 860px) {
@@ -150,8 +158,12 @@
           <textarea class="origin" id="originText" placeholder="在此粘贴你的中文原稿，例如：在成都，慢不是懒，而是一种生活态度。清晨的茶馆里，人们用盖碗茶泡开一天，摆起龙门阵……"></textarea>
           <div class="input-actions">
             <span class="input-hint"><span id="modeBadge" class="mode-badge mode-fallback">探测中…</span></span>
-            <button class="analyze-btn" id="analyzeBtn">开始翻译 →</button>
+            <div class="input-btns">
+              <button class="upload-btn" id="uploadBtn" type="button">📄 上传文档</button>
+              <button class="analyze-btn" id="analyzeBtn">开始翻译 →</button>
+            </div>
           </div>
+          <input type="file" id="fileInput" accept=".txt,.docx" hidden />
         </div>
       </div>
     </section>
@@ -171,7 +183,10 @@
           <div class="card">
             <div class="col-title">
               <h3><span class="dotc"></span>中英对照</h3>
-              <button class="save-btn" id="saveBtn" hidden>保存成稿</button>
+              <div class="col-actions">
+                <button class="save-btn" id="saveBtn" hidden>保存成稿</button>
+                <button class="save-btn" id="exportBtn">导出 .txt</button>
+              </div>
             </div>
             <div id="compareView"></div>
             <div class="legend">
@@ -276,15 +291,16 @@
     </div>
   </footer>
 
-  <script src="js/config.js?v=5"></script>
-  <script src="js/data.js?v=5"></script>
-  <script src="js/storage.js?v=5"></script>
-  <script src="js/prompts.js?v=5"></script>
-  <script src="js/segments.js?v=5"></script>
-  <script src="js/api.js?v=5"></script>
-  <script src="js/profile.js?v=5"></script>
-  <script src="js/render.js?v=5"></script>
-  <script src="js/chat.js?v=5"></script>
-  <script src="js/app.js?v=5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js" async></script>
+  <script src="js/config.js?v=6"></script>
+  <script src="js/data.js?v=6"></script>
+  <script src="js/storage.js?v=6"></script>
+  <script src="js/prompts.js?v=6"></script>
+  <script src="js/segments.js?v=6"></script>
+  <script src="js/api.js?v=6"></script>
+  <script src="js/profile.js?v=6"></script>
+  <script src="js/render.js?v=6"></script>
+  <script src="js/chat.js?v=6"></script>
+  <script src="js/app.js?v=6"></script>
 </body>
 </html>

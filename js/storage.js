@@ -11,7 +11,8 @@ QJC.storage = (function () {
   var KEYS = {
     settings: "qjc_settings",
     profile: "qjc_profile_v1",
-    history: "qjc_history_v1"
+    history: "qjc_history_v1",
+    workspace: "qjc_workspace_v1"   // 当前工作台（原稿+译文+对话），跳页不丢
   };
 
   var APP_NAME = "桥见川渝";
@@ -93,6 +94,11 @@ QJC.storage = (function () {
   function loadHistory() { return read(KEYS.history, []); }
   function saveHistory(h) { return write(KEYS.history, h); }
 
+  /* 当前工作台：原稿 + 分段译文 + 选段 + 对话历史，用于跳页后恢复 */
+  function loadWorkspace() { return read(KEYS.workspace, null); }
+  function saveWorkspace(ws) { return write(KEYS.workspace, ws); }
+  function clearWorkspace() { try { localStorage.removeItem(KEYS.workspace); } catch (e) {} }
+
   /* 导出：默认只打包 profile + history（不含设置，避免泄露 key/隐私） */
   function exportJSON() {
     return JSON.stringify({
@@ -167,6 +173,9 @@ QJC.storage = (function () {
     saveProfile: saveProfile,
     loadHistory: loadHistory,
     saveHistory: saveHistory,
+    loadWorkspace: loadWorkspace,
+    saveWorkspace: saveWorkspace,
+    clearWorkspace: clearWorkspace,
     exportJSON: exportJSON,
     importJSON: importJSON,
     clear: clear
