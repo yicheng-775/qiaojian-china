@@ -87,7 +87,7 @@ QJC.api = (function () {
     if (fence) { try { return JSON.parse(fence[1].trim()); } catch (e2) { /* 继续 */ } }
     var a = s.indexOf("{"), b = s.lastIndexOf("}");
     if (a !== -1 && b > a) { try { return JSON.parse(s.slice(a, b + 1)); } catch (e3) { /* 继续 */ } }
-    throw new Error("无法解析 AI 返回的 JSON");
+    throw new Error("无法解析 AI 返回的 JSON（片段：" + s.slice(0, 200) + "）");
   }
 
   /* ---------- MyMemory 免费机翻（兜底模式） ---------- */

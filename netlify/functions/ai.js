@@ -21,6 +21,8 @@ function callDeepSeek(apiKey, payload) {
       model: payload.model || "deepseek-v4-flash",
       messages: payload.messages || [],
       temperature: payload.temperature != null ? payload.temperature : 0.3,
+      // 显式放宽输出上限，避免长文翻译时 JSON 被截断导致前端解析失败
+      max_tokens: payload.max_tokens || 16384,
       // deepseek-v4 默认开启思考链（reasoning），改稿会先生成超长思考导致超时，
       // 这里显式关闭，让模型直接输出，加速返回。
       thinking: { type: "disabled" },
@@ -107,9 +109,14 @@ exports.handler = async function (event) {
       };
     }
 
-    const content = parsed.choices && parsed.choices[0] && parsed.choices[0].message && parsed.choices[0].message.content;
+    const choice = parsed.choices && parsed.choices[0];
+    const content = choice && choice.message && choice.message.content;
     if (!content) {
       return { statusCode: 500, headers, body: JSON.stringify({ ok: false, error: "DeepSeek 返回为空" }) };
+    }
+    // 输出被 max_tokens 截断 → JSON 不完整，直接给出明确错误而非让前端解析失败
+    if (choice.finish_reason === "length") {
+      return { statusCode: 500, headers, body: JSON.stringify({ ok: false, error: "翻译内容过长，输出被截断，请缩短文章后重试" }) };
     }
     return { statusCode: 200, headers, body: JSON.stringify({ ok: true, content: content }) };
   } catch (e) {

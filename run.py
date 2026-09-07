@@ -105,6 +105,8 @@ class Handler(BaseHTTPRequestHandler):
             "model": payload.get("model", "deepseek-v4-flash"),
             "messages": payload.get("messages", []),
             "temperature": payload.get("temperature", 0.3),
+            # 显式放宽输出上限，避免长文翻译时 JSON 被截断导致前端解析失败
+            "max_tokens": payload.get("max_tokens", 16384),
             # deepseek-v4 默认开启思考链（reasoning），改稿会先生成超长思考导致超时，
             # 这里显式关闭，让模型直接输出，加速返回。
             "thinking": {"type": "disabled"},
