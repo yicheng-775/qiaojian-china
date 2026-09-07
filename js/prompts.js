@@ -99,15 +99,22 @@ QJC.prompts = (function () {
       "\n\n输出（严格 JSON，无多余文字）：\n{\"updatedParagraphs\":[{\"id\":\"p3\",\"translation\":\"新译文\"}],\"reply\":\"解释文字\"}" +
       "\n\n请只输出 JSON，不要包含任何解释或 Markdown 代码块标记。";
 
-    var user = "整篇中英对照：\n" + payload.segments.map(function (s) {
+    // 只传选中段（默认改稿只改选中段，缩短 prompt、加快生成）
+    var selectedIds = payload.selectedIds || [];
+    var segs = selectedIds.length
+      ? payload.segments.filter(function (s) { return selectedIds.indexOf(s.id) !== -1; })
+      : payload.segments;
+
+    var user = "中英对照（待改段）：\n" + segs.map(function (s) {
       return "[" + s.id + "] 中：" + s.source + "\n[" + s.id + "] 英：" + (s.translation || "（未翻译）");
     }).join("\n");
 
-    user += "\n\n当前选中段落：" + (payload.selectedIds || []).join("、");
+    user += "\n\n当前选中段落：" + selectedIds.join("、");
     user += "\n最新指令：" + payload.message;
 
     if (payload.history && payload.history.length) {
-      user += "\n\n本文此前对话：\n" + payload.history.map(function (m) {
+      var recent = payload.history.slice(-6); // 只保留最近 3 轮，控制长度
+      user += "\n\n本文此前对话（最近几轮）：\n" + recent.map(function (m) {
         return (m.role === "user" ? "用户" : "助手") + "：" + m.content;
       }).join("\n");
     }

@@ -43,8 +43,8 @@ function callDeepSeek(apiKey, payload) {
     });
 
     req.on("error", function (e) { reject(e); });
-    // 15 秒超时保护，避免无限挂起
-    req.setTimeout(15000, function () { req.destroy(new Error("DeepSeek 请求超时")); });
+    // 25 秒超时保护（接近 Netlify 免费版上限），避免无限挂起
+    req.setTimeout(25000, function () { req.destroy(new Error("DeepSeek 请求超时")); });
     req.write(body);
     req.end();
   });
