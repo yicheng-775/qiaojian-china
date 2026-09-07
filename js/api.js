@@ -66,9 +66,13 @@ QJC.api = (function () {
     })
       .then(function (r) {
         if (!r.ok) {
-          return r.json()
-            .then(function (d) { throw new Error(d.error || "AI 代理错误 " + r.status); })
-            .catch(function () { throw new Error("AI 代理错误 " + r.status); });
+          // 先读文本再手动解析：既透传代理返回的具体 error，又兜底「非 JSON」场景
+          return r.text().then(function (text) {
+            var d = null;
+            try { d = JSON.parse(text); } catch (e) { d = null; }
+            if (d && d.error) throw new Error(d.error);
+            throw new Error("AI 服务异常（HTTP " + r.status + "），请稍后重试");
+          });
         }
         return r.json();
       })

@@ -48,8 +48,8 @@ function callDeepSeek(apiKey, payload) {
     });
 
     req.on("error", function (e) { reject(e); });
-    // 25 秒超时保护（接近 Netlify 免费版上限），避免无限挂起
-    req.setTimeout(25000, function () { req.destroy(new Error("DeepSeek 请求超时")); });
+    // 8 秒超时保护：Netlify 免费版函数硬上限 10 秒，必须在平台强杀前主动返回
+    req.setTimeout(8000, function () { req.destroy(new Error("AI 响应超时（8 秒无返回）")); });
     req.write(body);
     req.end();
   });
@@ -134,6 +134,7 @@ exports.handler = async function (event) {
       return { statusCode: 200, headers, body: JSON.stringify({ ok: true, content: content }) };
     } catch (e) {
       lastError = "call failed: " + String(e);
+      if (String(e).indexOf("超时") !== -1) break; // 超时不再重试（Netlify 10s 上限内重试也来不及）
     }
   }
 
