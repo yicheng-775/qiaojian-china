@@ -43,10 +43,15 @@ QJC.api = (function () {
   function isProbed() { return state.probed; }
 
   /* ---------- 通用：调用本地 AI 代理（转发 DeepSeek） ---------- */
+  function friendlyNetErr(e) {
+    if (e && e.message === "Failed to fetch") {
+      return new Error("无法连接 AI 服务：请确认在「线上地址」打开本页（不是本地双击 index.html），并关闭 VPN/代理后重试");
+    }
+    return e;
+  }
+
   function aiChat(messages, temperature) {
-    var url = state.endpoint ||
-      (QJC.config.AI_ENDPOINTS && QJC.config.AI_ENDPOINTS[0] && QJC.config.AI_ENDPOINTS[0].endpoint) ||
-      QJC.config.AI_PROXY;
+    var url = state.endpoint || "/.netlify/functions/ai";
     var key = QJC.storage.loadSettings().deepseekKey || "";
     return fetch(url, {
       method: "POST",
@@ -60,13 +65,18 @@ QJC.api = (function () {
       })
     })
       .then(function (r) {
-        if (!r.ok) return r.json().then(function (d) { throw new Error(d.error || "AI 代理错误 " + r.status); });
+        if (!r.ok) {
+          return r.json()
+            .then(function (d) { throw new Error(d.error || "AI 代理错误 " + r.status); })
+            .catch(function () { throw new Error("AI 代理错误 " + r.status); });
+        }
         return r.json();
       })
       .then(function (data) {
         if (!data || data.ok !== true || !data.content) throw new Error("AI 返回为空");
         return parseJSON(data.content);
-      });
+      })
+      .catch(function (e) { throw friendlyNetErr(e); });
   }
 
   /* 从 AI 返回文本中稳健提取 JSON（容忍 markdown 代码块包裹） */
@@ -92,7 +102,8 @@ QJC.api = (function () {
             return data.responseData.translatedText;
           }
           throw new Error("机翻失败");
-        });
+        })
+        .catch(function (e) { throw friendlyNetErr(e); });
     })).then(function (parts) { return parts.join(""); });
   }
 

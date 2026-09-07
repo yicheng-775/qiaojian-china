@@ -9,11 +9,9 @@ QJC.config = {
   /* DeepSeek 模型（deepseek-chat 别名已弃用，改用 deepseek-v4-flash） */
   model: "deepseek-v4-flash",
 
-  /* AI 端点候选（probeAI 依次探测，第一个连通的作为活动端点）：
-     1) 本地 run.py（开发时双击 run-ai.bat，走 localhost:8000）
-     2) Netlify Function（部署到 Netlify 后，走 /.netlify/functions/ai） */
+  /* AI 端点：Netlify Function（部署后走 /.netlify/functions/ai）。
+     纯网页部署，任何电脑打开线上链接即可用，无需本地脚本。 */
   AI_ENDPOINTS: [
-    { probe: "http://localhost:8000/api/ai/health", endpoint: "http://localhost:8000/api/ai" },
     { probe: "/.netlify/functions/ai", endpoint: "/.netlify/functions/ai" }
   ],
 

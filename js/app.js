@@ -120,7 +120,7 @@
         var hint = $("translateError");
         if (hint) {
           hint.hidden = false;
-          hint.textContent = "翻译出错：" + (err && err.message ? err.message : err) + "（可尝试稍后重试，或启动本地 AI 脚本）";
+          hint.textContent = "翻译出错：" + (err && err.message ? err.message : err);
         }
       });
   }
