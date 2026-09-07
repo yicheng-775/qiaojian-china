@@ -255,6 +255,19 @@ button { font-family: inherit; cursor: pointer; }
 }
 .seg-translating { color: var(--ink-faint); font-style: italic; }
 
+/* 改稿痕迹：旧译文（删除线）→ 新译文（高亮） */
+.seg-old {
+  display: block; margin-bottom: 6px; font-size: 13px; line-height: 1.8;
+  color: var(--ink-faint); text-decoration: line-through;
+  text-decoration-color: rgba(194,64,42,.55);
+}
+.seg-old::before { content: "旧 "; font-weight: 700; color: var(--ink-faint); text-decoration: none; display: inline-block; margin-right: 4px; }
+.seg-new {
+  display: block; padding: 3px 8px; border-left: 3px solid var(--teal);
+  background: rgba(27,94,90,.08); border-radius: 4px;
+}
+.seg-new::before { content: "新 "; font-weight: 700; color: var(--teal); display: inline-block; margin-right: 4px; }
+
 /* 文化词高亮 */
 mark.hl { padding: 1px 5px; border-radius: 5px; cursor: help; font-weight: 600; }
 mark.hl.cultural { background: rgba(194,64,42,.14); color: #9c2f1d; border-bottom: 2px solid var(--cinnabar); }
@@ -283,6 +296,15 @@ mark.hl.context { background: rgba(27,94,90,.12); color: #14504c; border-bottom:
 .msg.user .msg-body { background: var(--cinnabar); color: #fff; border-top-right-radius: 4px; }
 .msg.assistant .msg-body { background: var(--paper-deep); color: var(--ink); border-top-left-radius: 4px; }
 .msg-error .msg-body { background: rgba(194,64,42,.08); color: var(--cinnabar); border: 1px dashed rgba(194,64,42,.4); }
+
+/* 改稿「加载中」占位：前置旋转小圈，缓解干等 */
+.msg-loading .msg-body { color: var(--ink-faint); display: flex; align-items: center; gap: 8px; }
+.msg-loading .msg-body::before {
+  content: ""; width: 13px; height: 13px; flex: none; border-radius: 50%;
+  border: 2px solid rgba(27,94,90,.20); border-top-color: var(--teal);
+  animation: qjcSpin .8s linear infinite;
+}
+@keyframes qjcSpin { to { transform: rotate(360deg); } }
 .chat-input-row { display: flex; gap: 8px; align-items: flex-end; }
 .chat-input-row textarea {
   flex: 1; padding: 11px 13px; border-radius: var(--r-md); border: 1.5px solid rgba(33,29,23,.14);

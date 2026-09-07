@@ -81,6 +81,7 @@ QJC.chat = (function () {
     bubble.appendChild(body);
     messagesEl.appendChild(bubble);
     messagesEl.scrollTop = messagesEl.scrollHeight;
+    return bubble;
   }
 
   function send() {
@@ -97,6 +98,9 @@ QJC.chat = (function () {
     sendEl.disabled = true;
     sendEl.textContent = "改稿中…";
 
+    // 立即插入「加载中」占位，避免用户干等
+    var loadingBubble = appendMessage("assistant", "正在想怎么改…", "msg-loading");
+
     var payload = {
       segments: appState.segments,
       selectedIds: appState.selectedIds.slice(),
@@ -108,10 +112,17 @@ QJC.chat = (function () {
     QJC.api.rewrite(payload)
       .then(function (result) {
         if (!result.updatedParagraphs || !result.updatedParagraphs.length) throw new Error("AI 未返回修订");
+        if (loadingBubble) loadingBubble.remove();
         var updatedIds = [];
         result.updatedParagraphs.forEach(function (p) {
           var seg = appState.segments.find(function (s) { return s.id === p.id; });
-          if (seg) { seg.translation = p.translation; updatedIds.push(p.id); }
+          if (seg) {
+            if (seg.translation && seg.translation !== p.translation) {
+              seg.prevTranslation = seg.translation; // 保存旧译文，用于显示修改痕迹
+            }
+            seg.translation = p.translation;
+            updatedIds.push(p.id);
+          }
         });
         QJC.render.applyUpdate(appState, compareContainer, updatedIds);
         appendMessage("assistant", result.reply || "已更新。");
@@ -120,6 +131,7 @@ QJC.chat = (function () {
         maybeExtractPrefs();
       })
       .catch(function (err) {
+        if (loadingBubble) loadingBubble.remove();
         appendMessage("assistant", "改稿失败：" + (err && err.message ? err.message : err), "msg-error");
       })
       .then(function () {

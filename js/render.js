@@ -48,7 +48,17 @@ QJC.render = (function () {
     state.segments.forEach(function (seg, i) {
       var selected = state.selectedIds && state.selectedIds.indexOf(seg.id) !== -1;
       var srcHtml = highlightSegment(seg.source, state.matches);
-      var trHtml = seg.translation ? esc(seg.translation) : '<span class="seg-translating">翻译中…</span>';
+      var trHtml;
+      if (seg.translation) {
+        if (seg.prevTranslation && seg.prevTranslation !== seg.translation) {
+          trHtml = '<span class="seg-old">' + esc(seg.prevTranslation) + '</span>' +
+                   '<span class="seg-new">' + esc(seg.translation) + '</span>';
+        } else {
+          trHtml = esc(seg.translation);
+        }
+      } else {
+        trHtml = '<span class="seg-translating">翻译中…</span>';
+      }
       html += '<div class="seg' + (selected ? " selected" : "") + '" data-id="' + esc(seg.id) + '">' +
         '<div class="seg-head"><span class="seg-no">' + (i + 1) + '</span>' +
         (selected ? '<span class="seg-tag">编辑中</span>' : '') + '</div>' +
