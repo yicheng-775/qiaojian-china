@@ -105,6 +105,9 @@ class Handler(BaseHTTPRequestHandler):
             "model": payload.get("model", "deepseek-v4-flash"),
             "messages": payload.get("messages", []),
             "temperature": payload.get("temperature", 0.3),
+            # deepseek-v4 默认开启思考链（reasoning），改稿会先生成超长思考导致超时，
+            # 这里显式关闭，让模型直接输出，加速返回。
+            "thinking": {"type": "disabled"},
             "response_format": {"type": "json_object"},
             "stream": False,
         }
