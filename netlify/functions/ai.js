@@ -95,31 +95,47 @@ exports.handler = async function (event) {
     return { statusCode: 500, headers, body: JSON.stringify({ ok: false, error: "未填写 DeepSeek API key" }) };
   }
 
-  try {
-    const result = await callDeepSeek(apiKey, payload);
+  // 自动重试：DeepSeek 偶发「提前停止」→ 返回半截 JSON（finish_reason 仍是 stop）。
+  // 检测到输出不完整就重试一次（共 2 次）。正常情况只调 1 次、不多花积分；
+  // 只在明确失败信号（非 200 / 内容为空 / 截断 / JSON 未闭合）下才补调一次。
+  const MAX_ATTEMPTS = 2;
+  let lastError = "未知错误";
 
-    let parsed;
-    try { parsed = JSON.parse(result.data); } catch (e) { parsed = { error: "non-json response" }; }
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    try {
+      const result = await callDeepSeek(apiKey, payload);
 
-    if (result.status !== 200) {
-      return {
-        statusCode: result.status,
-        headers,
-        body: JSON.stringify({ ok: false, error: "DeepSeek error: " + JSON.stringify(parsed).slice(0, 300) }),
-      };
-    }
+      let parsed = null;
+      try { parsed = JSON.parse(result.data); } catch (e) { /* non-json */ }
 
-    const choice = parsed.choices && parsed.choices[0];
-    const content = choice && choice.message && choice.message.content;
-    if (!content) {
-      return { statusCode: 500, headers, body: JSON.stringify({ ok: false, error: "DeepSeek 返回为空" }) };
+      if (result.status !== 200) {
+        lastError = "DeepSeek error: " + JSON.stringify(parsed || {}).slice(0, 300);
+        continue;
+      }
+
+      const choice = parsed && parsed.choices && parsed.choices[0];
+      const content = choice && choice.message && choice.message.content;
+      if (!content) { lastError = "DeepSeek 返回为空"; continue; }
+
+      // finish_reason=length：被 max_tokens 截断。可能真太长，也可能偶发，重试一次
+      if (choice.finish_reason === "length") {
+        lastError = "翻译内容过长，输出被截断，请缩短文章后重试";
+        continue;
+      }
+
+      // 核心修复：content 已完整返回但 JSON 未闭合 → 偶发提前停止，重试
+      let complete = true;
+      try { JSON.parse(content); } catch (e) { complete = false; }
+      if (!complete) {
+        lastError = "AI 输出不完整（片段：" + content.slice(0, 200) + "）";
+        continue;
+      }
+
+      return { statusCode: 200, headers, body: JSON.stringify({ ok: true, content: content }) };
+    } catch (e) {
+      lastError = "call failed: " + String(e);
     }
-    // 输出被 max_tokens 截断 → JSON 不完整，直接给出明确错误而非让前端解析失败
-    if (choice.finish_reason === "length") {
-      return { statusCode: 500, headers, body: JSON.stringify({ ok: false, error: "翻译内容过长，输出被截断，请缩短文章后重试" }) };
-    }
-    return { statusCode: 200, headers, body: JSON.stringify({ ok: true, content: content }) };
-  } catch (e) {
-    return { statusCode: 500, headers, body: JSON.stringify({ ok: false, error: "call failed: " + String(e) }) };
   }
+
+  return { statusCode: 500, headers, body: JSON.stringify({ ok: false, error: lastError }) };
 };
