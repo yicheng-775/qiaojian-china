@@ -3,3 +3,7 @@
   functions = "netlify/functions"
   # 静态站点发布目录（项目根目录，index.html 在这里）
   publish = "."
+
+  [build.environment]
+    # 指定较新的 Node 运行时，双保险（云函数代码本身用 https 模块，不依赖版本）
+    NODE_VERSION = "18"

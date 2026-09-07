@@ -1,15 +1,54 @@
 // ============================================================================
-// 桥见川渝 · DeepSeek 代理（Netlify Function，零依赖，Node 18+ 原生 fetch）
+// 桥见川渝 · DeepSeek 代理（Netlify Function，零依赖，Node 内置 https 模块）
 //
 // 作用：浏览器直连 DeepSeek 会被 CORS 拦截，这里做云端中转。
-//   - key 优先读 Netlify 环境变量 DEEPSEEK_API_KEY（更安全，推荐）；
-//     没设置则用下面的默认值（内置 key，便于零配置部署）。
-//   - 校验访问密码 AUTH_PASSWORD，防止他人盗刷内置 key。
+//   - key 由前端用户自填并经请求体传入（payload.key），可选回退环境变量。
+//   - 校验访问密码 AUTH_PASSWORD，防止陌生人刷免费额度。
+// 注意：用 Node 内置 https 而非 fetch，任何 Node 版本（含 <18）都能跑，避免 502。
 // ============================================================================
+
+const https = require("https");
+const { URL } = require("url");
 
 const DEEPSEEK_URL = "https://api.deepseek.com/chat/completions";
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || "";
 const AUTH_PASSWORD = "77522";
+
+// 用 https 模块调用 DeepSeek，返回 Promise<{ status, data }>
+function callDeepSeek(apiKey, payload) {
+  return new Promise(function (resolve, reject) {
+    const body = JSON.stringify({
+      model: payload.model || "deepseek-v4-flash",
+      messages: payload.messages || [],
+      temperature: payload.temperature != null ? payload.temperature : 0.3,
+      response_format: { type: "json_object" },
+      stream: false,
+    });
+
+    const url = new URL(DEEPSEEK_URL);
+    const req = https.request({
+      hostname: url.hostname,
+      path: url.pathname,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + apiKey,
+        "Content-Length": Buffer.byteLength(body),
+      },
+    }, function (res) {
+      let data = "";
+      res.setEncoding("utf8");
+      res.on("data", function (chunk) { data += chunk; });
+      res.on("end", function () { resolve({ status: res.statusCode, data: data }); });
+    });
+
+    req.on("error", function (e) { reject(e); });
+    // 15 秒超时保护，避免无限挂起
+    req.setTimeout(15000, function () { req.destroy(new Error("DeepSeek 请求超时")); });
+    req.write(body);
+    req.end();
+  });
+}
 
 exports.handler = async function (event) {
   const headers = {
@@ -51,37 +90,21 @@ exports.handler = async function (event) {
     return { statusCode: 500, headers, body: JSON.stringify({ ok: false, error: "未填写 DeepSeek API key" }) };
   }
 
-  // 转发 DeepSeek
-  const body = {
-    model: payload.model || "deepseek-v4-flash",
-    messages: payload.messages || [],
-    temperature: payload.temperature != null ? payload.temperature : 0.3,
-    response_format: { type: "json_object" },
-    stream: false,
-  };
-
   try {
-    const resp = await fetch(DEEPSEEK_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + apiKey,
-      },
-      body: JSON.stringify(body),
-    });
+    const result = await callDeepSeek(apiKey, payload);
 
-    let data;
-    try { data = await resp.json(); } catch (e) { data = { error: "non-json response" }; }
+    let parsed;
+    try { parsed = JSON.parse(result.data); } catch (e) { parsed = { error: "non-json response" }; }
 
-    if (!resp.ok) {
+    if (result.status !== 200) {
       return {
-        statusCode: resp.status,
+        statusCode: result.status,
         headers,
-        body: JSON.stringify({ ok: false, error: "DeepSeek error: " + JSON.stringify(data).slice(0, 300) }),
+        body: JSON.stringify({ ok: false, error: "DeepSeek error: " + JSON.stringify(parsed).slice(0, 300) }),
       };
     }
 
-    const content = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+    const content = parsed.choices && parsed.choices[0] && parsed.choices[0].message && parsed.choices[0].message.content;
     if (!content) {
       return { statusCode: 500, headers, body: JSON.stringify({ ok: false, error: "DeepSeek 返回为空" }) };
     }
