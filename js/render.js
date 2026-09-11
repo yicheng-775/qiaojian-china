@@ -57,7 +57,7 @@ QJC.render = (function () {
           trHtml = esc(seg.translation);
         }
       } else {
-        trHtml = '<span class="seg-translating">翻译中…</span>';
+        trHtml = '<span class="seg-translating">' + (state.translateFailed ? '翻译失败，请重试' : '翻译中…') + '</span>';
       }
       html += '<div class="seg' + (selected ? " selected" : "") + '" data-id="' + esc(seg.id) + '">' +
         '<div class="seg-head"><span class="seg-no">' + (i + 1) + '</span>' +

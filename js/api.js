@@ -53,6 +53,11 @@ QJC.api = (function () {
   function aiChat(messages, temperature) {
     var url = state.endpoint || "/.netlify/functions/ai";
     var key = QJC.storage.loadSettings().deepseekKey || "";
+    var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+    // 前端兜底超时 15s：比 Netlify 函数 10s 硬超时略宽，正常情况下后端先返回
+    var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, 15000) : null;
+    function clearTimer() { if (timer) { clearTimeout(timer); timer = null; } }
+
     return fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -62,9 +67,11 @@ QJC.api = (function () {
         temperature: temperature,
         password: QJC.config.authPassword,
         key: key
-      })
+      }),
+      signal: ctrl ? ctrl.signal : undefined
     })
       .then(function (r) {
+        clearTimer();
         if (!r.ok) {
           // 先读文本再手动解析：既透传代理返回的具体 error，又兜底「非 JSON」场景
           return r.text().then(function (text) {
@@ -80,7 +87,12 @@ QJC.api = (function () {
         if (!data || data.ok !== true || !data.content) throw new Error("AI 返回为空");
         return parseJSON(data.content);
       })
-      .catch(function (e) { throw friendlyNetErr(e); });
+      .catch(function (e) {
+        if (ctrl && ctrl.signal && ctrl.signal.aborted) {
+          throw new Error("AI 响应超时（超过 15 秒无返回），请稍后重试");
+        }
+        throw friendlyNetErr(e);
+      });
   }
 
   /* 从 AI 返回文本中稳健提取 JSON（容忍 markdown 代码块包裹） */
@@ -99,15 +111,23 @@ QJC.api = (function () {
     var chunks = QJC.segments.splitText(text, QJC.config.maxChunkLen);
     return Promise.all(chunks.map(function (chunk) {
       var url = QJC.config.MYMEMORY + "?q=" + encodeURIComponent(chunk) + "&langpair=zh-CN|en";
-      return fetch(url)
-        .then(function (r) { return r.json(); })
+      var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+      var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, 8000) : null;
+      function clearTimer() { if (timer) { clearTimeout(timer); timer = null; } }
+      return fetch(url, { signal: ctrl ? ctrl.signal : undefined })
+        .then(function (r) { clearTimer(); return r.json(); })
         .then(function (data) {
           if (data && data.responseStatus === 200 && data.responseData && data.responseData.translatedText) {
             return data.responseData.translatedText;
           }
           throw new Error("机翻失败");
         })
-        .catch(function (e) { throw friendlyNetErr(e); });
+        .catch(function (e) {
+          if (ctrl && ctrl.signal && ctrl.signal.aborted) {
+            throw new Error("免费机翻接口连接超时——请在「⚙ 设置」填写 DeepSeek API key 走 AI 翻译（更准更快）");
+          }
+          throw friendlyNetErr(e);
+        });
     })).then(function (parts) { return parts.join(""); });
   }
 
@@ -121,20 +141,29 @@ QJC.api = (function () {
      对外接口（均返回 Promise）
      ====================================================================== */
 
-  /* 翻译：AI 模式做文化适配改写；兜底模式逐段机翻 */
-  function translate(segments, profileContext, dictHints) {
+  /* 翻译：AI 模式逐段文化适配（每段独立短调用，稳过 10s 函数超时）；兜底模式逐段机翻 */
+  function translate(segments, profileContext, dictHints, onProgress) {
     if (!state.aiEnabled) return translateFallback(segments);
-    var pr = QJC.prompts.translate(segments, profileContext, dictHints);
-    return aiChat([
-      { role: "system", content: pr.system },
-      { role: "user", content: pr.user }
-    ], QJC.config.temperature.translate).then(function (obj) {
-      if (!obj.paragraphs || !obj.paragraphs.length) throw new Error("AI 未返回译文");
-      var map = {};
-      obj.paragraphs.forEach(function (p) { map[p.id] = p.translation; });
-      segments.forEach(function (seg) { if (map[seg.id]) seg.translation = map[seg.id]; });
-      return segments;
+    var total = segments.length;
+    var done = 0;
+    var chain = Promise.resolve();
+    segments.forEach(function (seg) {
+      chain = chain.then(function () {
+        var pr = QJC.prompts.translateSegment(seg, profileContext, dictHints);
+        return aiChat([
+          { role: "system", content: pr.system },
+          { role: "user", content: pr.user }
+        ], QJC.config.temperature.translate).then(function (obj) {
+          var t = obj && (obj.translation || (obj.paragraphs && obj.paragraphs[0] && obj.paragraphs[0].translation));
+          if (!t) throw new Error("AI 未返回该段译文");
+          seg.translation = t;
+          done++;
+          if (onProgress) onProgress(done, total);
+          return seg;
+        });
+      });
     });
+    return chain.then(function () { return segments; });
   }
 
   /* 对话改稿：仅 AI 模式 */

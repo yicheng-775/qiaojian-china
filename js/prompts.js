@@ -24,6 +24,22 @@ QJC.prompts = (function () {
     return lines.join("\n");
   }
 
+  /* ---------- 只提取「当前段落出现」的术语（逐段翻译用，控制 prompt 体积） ---------- */
+  function relevantGlossary(text) {
+    var merged = {};
+    [QJC.corpus && QJC.corpus.glossary, QJC.coreGlossary].forEach(function (src) {
+      Object.keys(src || {}).forEach(function (term) { merged[term] = src[term]; });
+    });
+    var lines = [];
+    Object.keys(merged).forEach(function (term) {
+      if (text.indexOf(term) !== -1) {
+        var g = merged[term];
+        lines.push("「" + term + "」→ " + g.en + "（" + g.region + "）");
+      }
+    });
+    return lines;
+  }
+
   /* ---------- 用户偏好档案文本（从 profileContext 生成） ---------- */
   function prefsText(profileContext) {
     if (!profileContext) return "";
@@ -83,6 +99,38 @@ QJC.prompts = (function () {
       user += "\n\n【词典参考建议】（供术语处理参考，不一定照搬）：\n" + dictHints.map(function (h) {
         return "「" + h.term + "」：" + (h.suggestions && h.suggestions[0] ? h.suggestions[0] : h.reason);
       }).join("\n");
+    }
+    return { system: system, user: user };
+  }
+
+  /* ======================================================================
+     1b. 单段翻译 prompt（一键翻译逐段调用：每段独立、短小，避开整篇超时）
+     ====================================================================== */
+  function translateSegment(seg, profileContext, dictHints) {
+    var terms = relevantGlossary(seg.source);
+    var system =
+      baseIdentity() +
+      "\n任务：把下面这一段中文翻译成英文，并针对「文化折扣」做适配改写。" +
+      "\n\n铁律：" +
+      "\n1. 忠实原意，但优先让英语读者「读懂」：文化负载词在首次出现处增译背景或加括号注释。" +
+      (terms.length
+        ? "\n2. 本段出现的川渝特色词按以下术语表处理：\n" + terms.join("\n")
+        : "\n2. 本段若含川渝特色词，音译后加括号注释说明。") +
+      "\n3. 保留原文节奏与画面感；新闻导语保持新闻语体；不做价值判断、不夹带政治立场。" +
+      "\n4. 严格遵守「用户偏好档案」。" +
+      "\n\n[用户偏好档案]\n" + (prefsText(profileContext) || "（无，按通用跨文化编辑标准处理）") +
+      "\n\n输出（严格 JSON，无多余文字）：\n{\"translation\":\"本段英文译文\"}" +
+      "\n\n请只输出 JSON，不要包含任何解释或 Markdown 代码块标记。";
+
+    var user = "本段中文：" + seg.source;
+
+    if (dictHints && dictHints.length) {
+      var hints = dictHints.filter(function (h) { return seg.source.indexOf(h.term) !== -1; });
+      if (hints.length) {
+        user += "\n\n【词典参考建议】（供术语处理参考，不一定照搬）：\n" + hints.map(function (h) {
+          return "「" + h.term + "」：" + (h.suggestions && h.suggestions[0] ? h.suggestions[0] : h.reason);
+        }).join("\n");
+      }
     }
     return { system: system, user: user };
   }
@@ -167,6 +215,7 @@ QJC.prompts = (function () {
 
   return {
     translate: translate,
+    translateSegment: translateSegment,
     rewrite: rewrite,
     classify: classify,
     profile: profile,

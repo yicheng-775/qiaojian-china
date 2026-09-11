@@ -16,7 +16,8 @@
     caseId: null,
     analyzed: false,
     lastClassify: null, // 最近一次分类结果 {domain, genre}
-    mode: "oneclick"    // 翻译方式：oneclick 一键整篇 | collab 对话逐段协作
+    mode: "oneclick",   // 翻译方式：oneclick 一键整篇 | collab 对话逐段协作
+    translateFailed: false // 一键翻译是否失败（失败时对照区显示「翻译失败」而非「翻译中」）
   };
 
   function escapeHtml(s) {
@@ -198,6 +199,7 @@
     state.matches = findMatches(text);
     state.selectedIds = [];
     state.lastClassify = null;
+    state.translateFailed = false;
     state.analyzed = true;
 
     QJC.chat.reset();
@@ -223,18 +225,26 @@
     // 对话协作模式：不整篇翻译，逐段通过对话生成 / 修改
     if (state.mode === "collab") return;
 
-    // 一键翻译模式：整篇一次生成
+    // 一键翻译模式：逐段翻译（每段独立调用，稳定不超时），带进度反馈
     var dictHints = state.matches.map(function (m) {
       return { term: m.term, suggestions: m.suggestions, reason: m.reason };
     });
     var profileContext = QJC.profile.buildProfileContext();
 
-    QJC.api.translate(state.segments, profileContext, dictHints)
+    setTranslateLoading(0, state.segments.length);
+
+    QJC.api.translate(state.segments, profileContext, dictHints, function (done, total) {
+      setTranslateLoading(done, total);
+      QJC.render.renderCompare(state, $("compareView")); // 逐段实时回显
+    })
       .then(function () {
+        setTranslateLoading(false);
         QJC.render.renderCompare(state, $("compareView"));
         persistWorkspace(); // 存译文
       })
       .catch(function (err) {
+        state.translateFailed = true;
+        setTranslateLoading(false);
         QJC.render.renderCompare(state, $("compareView"));
         persistWorkspace(); // 翻译失败也保留原稿与对话
         var hint = $("translateError");
@@ -243,6 +253,23 @@
           hint.textContent = "翻译出错：" + (err && err.message ? err.message : err);
         }
       });
+  }
+
+  /* 一键翻译按钮的进行中状态（禁用 + 进度文字） */
+  function setTranslateLoading(active, done, total) {
+    var btn = $("analyzeBtn");
+    if (!btn) return;
+    if (active === false) {
+      btn.disabled = false;
+      btn.textContent = state.mode === "collab" ? "开始逐段协作 →" : "开始翻译 →";
+      return;
+    }
+    btn.disabled = true;
+    if (done != null && total) {
+      btn.textContent = "翻译中 " + done + "/" + total + "…";
+    } else {
+      btn.textContent = "翻译中…";
+    }
   }
 
   /* ---------- 示例 ---------- */
