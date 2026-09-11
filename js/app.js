@@ -66,6 +66,16 @@
     });
     var btn = $("analyzeBtn");
     if (btn) btn.textContent = state.mode === "collab" ? "开始逐段协作 →" : "开始翻译 →";
+    applyModeLayout();
+  }
+
+  /* 结果区布局：一键=单栏（隐藏对话面板），协作=双栏（显示对话面板） */
+  function applyModeLayout() {
+    var ws = $("workspace");
+    var panel = document.querySelector(".chat-panel");
+    var collab = state.mode === "collab";
+    if (ws) ws.classList.toggle("single", !collab);
+    if (panel) panel.hidden = !collab;
   }
 
   function renderStats() {
@@ -119,6 +129,7 @@
       renderStats();
       QJC.render.renderCompare(state, $("compareView"));
     }
+    applyModeLayout(); // 无 mode 的旧工作台也按默认一键模式隐藏对话面板
     QJC.chat.restoreMessages(ws.chatHistory || []);
     return true;
   }
@@ -195,6 +206,7 @@
     $("saveBtn").hidden = false;
     renderStats();
     QJC.render.renderCompare(state, $("compareView"));
+    applyModeLayout(); // 按当前模式显示/隐藏对话面板
     $("workspace").scrollIntoView({ behavior: "smooth", block: "start" });
     persistWorkspace(); // 先存原稿（译文尚未生成）
 
@@ -441,6 +453,7 @@
 
     // 恢复上次工作台（原稿/译文/对话），跳页回来不丢
     restoreWorkspace();
+    applyModeLayout(); // 首次访问也按默认「一键翻译」隐藏对话面板
   }
 
   document.addEventListener("DOMContentLoaded", init);
