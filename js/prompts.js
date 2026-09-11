@@ -1,5 +1,5 @@
 /* ==========================================================================
-   桥见川渝 · Prompt 层
+   桥见巴渝 · Prompt 层
    四套 DeepSeek system prompt（翻译 / 改稿 / 分类 / 画像）。
    均要求输出 JSON；术语表与用户偏好档案在此拼装注入。
    ========================================================================== */
@@ -10,7 +10,8 @@ QJC.prompts = (function () {
   "use strict";
 
   /* ---------- 术语表文本（合并 coreGlossary 生活核心词 + corpus 语料专名） ---------- */
-  function glossaryText() {
+  function glossaryText(langDir) {
+    var en2zh = langDir === "en2zh";
     var lines = [];
     var merged = {};
     // 先并入语料库专名（corpus.glossary），再并入核心生活词，后者同名时覆盖
@@ -19,22 +20,26 @@ QJC.prompts = (function () {
     });
     Object.keys(merged).forEach(function (term) {
       var g = merged[term];
-      lines.push("「" + term + "」→ " + g.en + "（" + g.region + "）");
+      lines.push(en2zh ? ("「" + g.en + "」→ " + term + "（" + g.region + "）")
+                       : ("「" + term + "」→ " + g.en + "（" + g.region + "）"));
     });
     return lines.join("\n");
   }
 
   /* ---------- 只提取「当前段落出现」的术语（逐段翻译用，控制 prompt 体积） ---------- */
-  function relevantGlossary(text) {
+  function relevantGlossary(text, langDir) {
+    var en2zh = langDir === "en2zh";
     var merged = {};
     [QJC.corpus && QJC.corpus.glossary, QJC.coreGlossary].forEach(function (src) {
       Object.keys(src || {}).forEach(function (term) { merged[term] = src[term]; });
     });
     var lines = [];
     Object.keys(merged).forEach(function (term) {
-      if (text.indexOf(term) !== -1) {
-        var g = merged[term];
-        lines.push("「" + term + "」→ " + g.en + "（" + g.region + "）");
+      var g = merged[term];
+      var needle = en2zh ? g.en : term;
+      if (text.indexOf(needle) !== -1) {
+        lines.push(en2zh ? ("「" + g.en + "」→ " + term + "（" + g.region + "）")
+                         : ("「" + term + "」→ " + g.en + "（" + g.region + "）"));
       }
     });
     return lines;
@@ -71,7 +76,18 @@ QJC.prompts = (function () {
   }
 
   function baseIdentity() {
-    return "你是「桥见川渝」资深中英跨文化编辑，专长四川 + 重庆（巴蜀）文化对外传播，熟悉新闻稿件与特写的写作。";
+    return "你是「桥见巴渝」资深中英跨文化编辑，专长重庆（巴渝）文化对外传播，熟悉新闻稿件与特写的写作。";
+  }
+
+  /* 翻译方向：zh2en 中译英 | en2zh 英译中 */
+  function dirInfo(langDir) {
+    var en2zh = langDir === "en2zh";
+    return {
+      en2zh: en2zh,
+      src: en2zh ? "英文" : "中文",
+      dst: en2zh ? "中文" : "英文",
+      reader: en2zh ? "中文读者" : "英语读者"
+    };
   }
 
   /* ======================================================================
@@ -83,7 +99,7 @@ QJC.prompts = (function () {
       "\n任务：把给定的中文段落逐段翻译成英文，并针对「文化折扣」做适配改写。" +
       "\n\n铁律：" +
       "\n1. 忠实原意，但优先让英语读者「读懂」：文化负载词在首次出现处增译背景或加括号注释。" +
-      "\n2. 川渝特色词按以下术语表处理（可扩展）：\n" + glossaryText() +
+      "\n2. 巴渝特色词按以下术语表处理（可扩展）：\n" + glossaryText() +
       "\n3. 保留原文节奏与画面感；新闻导语保持新闻语体；不做价值判断、不夹带政治立场。" +
       "\n4. 严格遵守「用户偏好档案」。" +
       "\n\n[用户偏好档案]\n" + (prefsText(profileContext) || "（无，按通用跨文化编辑标准处理）") +
@@ -106,23 +122,24 @@ QJC.prompts = (function () {
   /* ======================================================================
      1b. 单段翻译 prompt（一键翻译逐段调用：每段独立、短小，避开整篇超时）
      ====================================================================== */
-  function translateSegment(seg, profileContext, dictHints) {
-    var terms = relevantGlossary(seg.source);
+  function translateSegment(seg, profileContext, dictHints, langDir) {
+    var d = dirInfo(langDir);
+    var terms = relevantGlossary(seg.source, langDir);
     var system =
       baseIdentity() +
-      "\n任务：把下面这一段中文翻译成英文，并针对「文化折扣」做适配改写。" +
+      "\n任务：把下面这一段" + d.src + "翻译成" + d.dst + "，并针对「文化折扣」做适配改写。" +
       "\n\n铁律：" +
-      "\n1. 忠实原意，但优先让英语读者「读懂」：文化负载词在首次出现处增译背景或加括号注释。" +
+      "\n1. 忠实原意，但优先让" + d.reader + "「读懂」：文化负载词在首次出现处增译背景或加括号注释。" +
       (terms.length
-        ? "\n2. 本段出现的川渝特色词按以下术语表处理：\n" + terms.join("\n")
-        : "\n2. 本段若含川渝特色词，音译后加括号注释说明。") +
+        ? "\n2. 本段出现的巴渝特色词按以下术语表处理：\n" + terms.join("\n")
+        : "\n2. 本段若含巴渝特色词，音译后加括号注释说明。") +
       "\n3. 保留原文节奏与画面感；新闻导语保持新闻语体；不做价值判断、不夹带政治立场。" +
       "\n4. 严格遵守「用户偏好档案」。" +
       "\n\n[用户偏好档案]\n" + (prefsText(profileContext) || "（无，按通用跨文化编辑标准处理）") +
-      "\n\n输出（严格 JSON，无多余文字）：\n{\"translation\":\"本段英文译文\"}" +
+      "\n\n输出（严格 JSON，无多余文字）：\n{\"translation\":\"本段" + d.dst + "译文\"}" +
       "\n\n请只输出 JSON，不要包含任何解释或 Markdown 代码块标记。";
 
-    var user = "本段中文：" + seg.source;
+    var user = "本段" + d.src + "：" + seg.source;
 
     if (dictHints && dictHints.length) {
       var hints = dictHints.filter(function (h) { return seg.source.indexOf(h.term) !== -1; });
@@ -139,15 +156,16 @@ QJC.prompts = (function () {
      2. 改稿对话 prompt
      ====================================================================== */
   function rewrite(payload) {
+    var d = dirInfo(payload.langDir);
     var system =
       baseIdentity() +
-      "\n任务：你正与创作者一起修改一篇中译英稿件。上下文含整篇中英对照（每段有 id）、用户当前选中的段落、以及最新指令。" +
+      "\n任务：你正与创作者一起修改一篇" + (d.en2zh ? "英译中" : "中译英") + "稿件。上下文含整篇双语对照（每段有 id）、用户当前选中的段落、以及最新指令。" +
       "\n\n规则：" +
       "\n1. 默认只修改用户选中的段落；除非用户明确说「全文/全部/所有段落」，才可返回多段。" +
       "\n2. 修改后务必用「中文」回复（1–3 句），像资深编辑和作者商量：先说明打算怎么改、为什么（针对文化折扣），语气亲切自然。" +
       "\n3. 术语必须与用户已确认的译法一致（术语表 + 偏好档案）。" +
       "\n4. 不改原文语义，只做翻译与跨文化适配。" +
-      "\n\n术语表：\n" + glossaryText() +
+      "\n\n术语表：\n" + glossaryText(payload.langDir) +
       "\n\n[用户偏好档案]\n" + (prefsText(payload.profileContext) || "（无）") +
       "\n\n输出（严格 JSON，无多余文字）：\n{\"updatedParagraphs\":[{\"id\":\"p3\",\"translation\":\"新译文\"}],\"reply\":\"中文解释\"}" +
       "\n\n请只输出 JSON，不要包含任何解释或 Markdown 代码块标记。";
@@ -158,8 +176,10 @@ QJC.prompts = (function () {
       ? payload.segments.filter(function (s) { return selectedIds.indexOf(s.id) !== -1; })
       : payload.segments;
 
-    var user = "中英对照（待改段）：\n" + segs.map(function (s) {
-      return "[" + s.id + "] 中：" + s.source + "\n[" + s.id + "] 英：" + (s.translation || "（未翻译）");
+    var user = (d.en2zh ? "英中对照" : "中英对照") + "（待改段）：\n" + segs.map(function (s) {
+      return d.en2zh
+        ? ("[" + s.id + "] 英：" + s.source + "\n[" + s.id + "] 中：" + (s.translation || "（未翻译）"))
+        : ("[" + s.id + "] 中：" + s.source + "\n[" + s.id + "] 英：" + (s.translation || "（未翻译）"));
     }).join("\n");
 
     user += "\n\n当前选中段落：" + selectedIds.join("、");
@@ -177,10 +197,11 @@ QJC.prompts = (function () {
   /* ======================================================================
      3. 领域 / 体裁 / 写作风格 分类 prompt
      ====================================================================== */
-  function classify(source) {
+  function classify(source, langDir) {
+    var d = dirInfo(langDir);
     var system =
       baseIdentity() +
-      "\n任务：给定一篇中文文章，判断其领域、体裁，并标注写作风格标签。" +
+      "\n任务：给定一篇" + d.src + "文章，判断其领域、体裁，并标注写作风格标签。" +
       "\n\n领域候选（单选）：" + (QJC.domains || []).join("/") +
       "\n体裁候选（单选）：" + (QJC.genres || []).join("/") +
       "\n写作风格维度（每个维度从候选中选 1 个）：" +
@@ -213,12 +234,40 @@ QJC.prompts = (function () {
     return { system: system, user: user };
   }
 
+  /* ======================================================================
+     5. 文化检索追问 prompt（讲解 + 答疑，输出中文回复）
+     ====================================================================== */
+  function cultureAsk(payload) {
+    var system =
+      baseIdentity() +
+      "\n任务：你是巴渝文化讲解员。用户在「文化检索」板块提了一个关于巴渝文化词/表达的问题，请用通俗易懂的中文回答（2–5 句），讲清它的文化背景与含义，必要时给出英文译法建议。" +
+      "\n\n规则：" +
+      "\n1. 用「中文」亲切自然地回答，像给外国朋友做文化科普。" +
+      "\n2. 可结合「已识别的文化词」与术语表展开，但不要照搬原文。" +
+      "\n3. 不夹带政治立场、不做价值判断。" +
+      "\n\n术语参考：\n" + glossaryText() +
+      "\n\n输出（严格 JSON，无多余文字）：\n{\"reply\":\"中文回答\"}" +
+      "\n\n请只输出 JSON，不要包含任何解释或 Markdown 代码块标记。";
+
+    var user = "用户当前输入文本：\n" + (payload.source || "（无）");
+    if (payload.matchesSummary) user += "\n\n已识别的文化词：" + payload.matchesSummary;
+    user += "\n\n用户提问：" + payload.message;
+
+    if (payload.history && payload.history.length) {
+      user += "\n\n此前对话（最近几轮）：\n" + payload.history.slice(-6).map(function (m) {
+        return (m.role === "user" ? "用户" : "助手") + "：" + m.content;
+      }).join("\n");
+    }
+    return { system: system, user: user };
+  }
+
   return {
     translate: translate,
     translateSegment: translateSegment,
     rewrite: rewrite,
     classify: classify,
     profile: profile,
+    cultureAsk: cultureAsk,
     glossaryText: glossaryText,
     prefsText: prefsText
   };

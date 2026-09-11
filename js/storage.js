@@ -1,5 +1,5 @@
 /* ==========================================================================
-   桥见川渝 · 存储层
+   桥见巴渝 · 存储层
    localStorage 读写（设置 / 画像 / 历史）+ 导入导出（不含 API key）。
    ========================================================================== */
 
@@ -15,7 +15,7 @@ QJC.storage = (function () {
     workspace: "qjc_workspace_v1"   // 当前工作台（原稿+译文+对话），跳页不丢
   };
 
-  var APP_NAME = "桥见川渝";
+  var APP_NAME = "桥见巴渝";
   var SCHEMA_VERSION = 1;
 
   /* ---------- 默认结构 ---------- */
@@ -25,6 +25,9 @@ QJC.storage = (function () {
       tone: "faithful",          // faithful 忠实 | fluent 流畅归化 | concise 精简
       annotate: true,            // 偏好「音译+括号注释」
       domestication: true,       // 归化 true / 异化 false
+      profileEnabled: true,      // 用户画像开关（关闭后不累积/不读取画像数据）
+      langDir: "zh2en",          // 翻译方向：zh2en 中译英 | en2zh 英译中
+      uiLang: "zh",              // 界面语言：zh 中文 | en 英文
       deepseekKey: ""            // 用户自填的 DeepSeek key（仅存本机，不随导出打包）
     };
   }
@@ -114,7 +117,7 @@ QJC.storage = (function () {
   function importJSON(str) {
     var obj;
     try { obj = JSON.parse(str); } catch (e) { return { ok: false, error: "JSON 解析失败" }; }
-    if (!obj || obj.app !== APP_NAME) return { ok: false, error: "不是「桥见川渝」的导出文件" };
+    if (!obj || (obj.app !== APP_NAME && obj.app !== "桥见川渝")) return { ok: false, error: "不是「桥见巴渝」的导出文件" };
     if (!obj.profile) return { ok: false, error: "缺少画像数据" };
 
     var cur = loadProfile();

@@ -1,5 +1,5 @@
 /* ==========================================================================
-   桥见川渝 · 用户画像层
+   桥见巴渝 · 用户画像层
    三层画像：领域×体裁（写什么）+ 写作风格（怎么写，核心）+ 习惯偏好（元习惯）。
    占比由前端计算（AI 只写文字），并生成注入 prompt 的画像上下文。
    ========================================================================== */
@@ -12,6 +12,7 @@ QJC.profile = (function () {
   /* ---------- 累积一篇的分类结果 ---------- */
   function recordClassification(result) {
     if (!result) return;
+    if (!QJC.storage.loadSettings().profileEnabled) return; // 画像已关闭：不累积
     var p = QJC.storage.loadProfile();
     var now = Date.now();
     if (result.domain) bump(p.domainStats, result.domain, now);
@@ -78,8 +79,16 @@ QJC.profile = (function () {
 
   /* ---------- 构建注入 prompt 的画像上下文 ---------- */
   function buildProfileContext() {
-    var p = QJC.storage.loadProfile();
     var s = QJC.storage.loadSettings();
+    // 画像已关闭：仅保留用户手动设置的翻译偏好，不读取任何累积数据
+    if (!s.profileEnabled) {
+      return {
+        topDomains: [], topGenres: [], styleProfile: "",
+        preferredTerms: {}, bannedPhrases: [], rules: [],
+        prefs: { audience: s.audience, tone: s.tone, annotate: s.annotate, domestication: s.domestication }
+      };
+    }
+    var p = QJC.storage.loadProfile();
     var r = computeRatios();
     return {
       topDomains: r.topDomains.slice(0, 3).map(function (d) { return d.name; }),
@@ -112,6 +121,7 @@ QJC.profile = (function () {
 
   /* ---------- 从对话提取偏好（AI） ---------- */
   function extractPrefsFromDialogue(history) {
+    if (!QJC.storage.loadSettings().profileEnabled) return Promise.resolve(null); // 画像已关闭
     var p = QJC.storage.loadProfile();
     var context = buildProfileContext();
     context.recentDialogue = history.slice(-10);
@@ -128,17 +138,32 @@ QJC.profile = (function () {
      画像报告渲染（profile.html 用）
      ====================================================================== */
   function renderReport() {
-    var r = computeRatios();
     var p = QJC.storage.loadProfile();
+
+    // 画像已关闭：显示占位，不读统计数据
+    if (!QJC.storage.loadSettings().profileEnabled) {
+      var td = QJC.i18n.t;
+      setText("profileTotal", td("profileDisabled"));
+      setHTML("domainBars", emptyRow(td("profileDisabledRow")));
+      setHTML("genreBars", emptyRow(td("profileDisabledRow")));
+      setHTML("styleBars", emptyRow(td("profileDisabledRow")));
+      setText("portraitSummary", td("profileDisabledSummary"));
+      renderPrefs(p);
+      setText("prefTerms", td("profileDisabled"));
+      setText("prefRules", td("profileDisabled"));
+      return;
+    }
+
+    var r = computeRatios();
     var total = totalCount();
 
-    setText("profileTotal", total + " 篇");
+    setText("profileTotal", QJC.i18n.t("profileTotalX", { n: total }));
     setHTML("domainBars", barsHTML(r.topDomains, "domain"));
     setHTML("genreBars", barsHTML(r.topGenres, "genre"));
     setHTML("styleBars", styleBarsHTML(r.styleStats));
     setText("portraitSummary",
       (p.portrait && p.portrait.styleSummary) ||
-      (total ? styleProfileText() + "。" : "暂无数据——先去翻译几篇文章，画像会自动生成。"));
+      (total ? styleProfileText() + "。" : QJC.i18n.t("profileEmptySummary")));
     renderPrefs(p);
   }
 
@@ -146,14 +171,14 @@ QJC.profile = (function () {
   function setHTML(id, html) { var el = document.getElementById(id); if (el) el.innerHTML = html; }
 
   function barsHTML(arr, prefix) {
-    if (!arr.length) return emptyRow("暂无数据");
+    if (!arr.length) return emptyRow(QJC.i18n.t("profileNoData"));
     var max = arr[0].count;
     return arr.map(function (item, i) {
       var w = Math.max(4, Math.round(item.ratio * 100));
       return '<div class="bar-row">' +
         '<span class="bar-label">' + esc(item.name) + '</span>' +
         '<span class="bar-track"><span class="bar-fill" data-prefix="' + prefix + i + '" style="width:' + w + '%"></span></span>' +
-        '<span class="bar-val">' + item.count + ' 篇 · ' + Math.round(item.ratio * 100) + '%</span>' +
+        '<span class="bar-val">' + QJC.i18n.t("profileBarVal", { count: item.count, pct: Math.round(item.ratio * 100) }) + '</span>' +
       '</div>';
     }).join("");
   }
@@ -181,19 +206,20 @@ QJC.profile = (function () {
         '<div class="style-group-title">' + esc(QJC.styleDims[dim].label) + '</div>' + opts + '</div>';
     }).filter(Boolean);
 
-    return rows.length ? rows.join("") : emptyRow("暂无数据");
+    return rows.length ? rows.join("") : emptyRow(QJC.i18n.t("profileNoData"));
   }
 
   function renderPrefs(p) {
     var s = QJC.storage.loadSettings();
-    var toneMap = { faithful: "忠实原文", fluent: "流畅归化", concise: "精简" };
-    var audienceMap = { general: "通用读者", news: "新闻读者", academic: "学术读者", youth: "年轻读者" };
+    var t = QJC.i18n.t;
+    var toneMap = { faithful: t("toneFaithful"), fluent: t("toneFluent"), concise: t("toneConcise") };
+    var audienceMap = { general: t("audienceGeneral"), news: t("audienceNews"), academic: t("audienceAcademic"), youth: t("audienceYouth") };
     setText("prefAudience", audienceMap[s.audience] || s.audience);
     setText("prefTone", toneMap[s.tone] || s.tone);
-    setText("prefAnnotate", s.annotate ? "文化词首见处加注释" : "尽量不加注释");
-    setText("prefDomestication", s.domestication ? "归化（贴近英语读者）" : "异化（保留源语色彩）");
-    setText("prefTerms", Object.keys(p.extractedPrefs.preferredTerms || {}).length + " 组术语");
-    setText("prefRules", (p.extractedPrefs.rules || []).length + " 条规则");
+    setText("prefAnnotate", s.annotate ? t("profileAnnotateOn") : t("profileAnnotateOff"));
+    setText("prefDomestication", s.domestication ? t("profileDomesticationOn") : t("profileDomesticationOff"));
+    setText("prefTerms", t("profileTerms", { n: Object.keys(p.extractedPrefs.preferredTerms || {}).length }));
+    setText("prefRules", t("profileRules", { n: (p.extractedPrefs.rules || []).length }));
   }
 
   function emptyRow(t) { return '<div class="empty-row">' + t + '</div>'; }

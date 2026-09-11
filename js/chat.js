@@ -1,5 +1,5 @@
 /* ==========================================================================
-   桥见川渝 · 对话改稿层
+   桥见巴渝 · 对话改稿层
    选中段落 → 对话 → DeepSeek 返回修订 → 译文更新。
    兜底模式下显示「启动本地脚本解锁 AI 改稿」引导。
    ========================================================================== */
@@ -72,17 +72,24 @@ QJC.chat = (function () {
 
   function updateHint() {
     if (!hintEl) return;
+    var t = QJC.i18n.t;
+    if (appState && appState.board === "culture") {
+      if (!appState.source) hintEl.textContent = t("hintCultureEmpty");
+      else if (appState.matches && appState.matches.length) hintEl.textContent = t("hintCultureFound", { n: appState.matches.length });
+      else hintEl.textContent = t("hintCultureNone");
+      return;
+    }
     var sel = appState && appState.selectedIds && appState.selectedIds.length;
     var isCollab = appState && appState.mode === "collab";
     if (!appState || !appState.segments || !appState.segments.length) {
-      hintEl.textContent = "先翻译一篇文章，再点击左侧段落开始改稿。";
+      hintEl.textContent = t("hintNoTranslate");
     } else if (sel) {
       var idx = appState.segments.findIndex(function (s) { return s.id === appState.selectedIds[0]; });
-      hintEl.textContent = "当前编辑：第 " + (idx + 1) + " 段";
+      hintEl.textContent = t("hintEditing", { n: idx + 1 });
     } else if (isCollab) {
-      hintEl.textContent = "逐段协作：点击左侧某段，再在下方输入怎么翻这一段（如「翻这段，保留专名音译」）。";
+      hintEl.textContent = t("hintCollab");
     } else {
-      hintEl.textContent = "点击左侧任意段落，针对它对话改稿。";
+      hintEl.textContent = t("hintSelect");
     }
   }
 
@@ -92,7 +99,7 @@ QJC.chat = (function () {
     bubble.className = "msg " + role + (extraClass ? " " + extraClass : "");
     var label = document.createElement("div");
     label.className = "msg-label";
-    label.textContent = role === "user" ? "你" : "助手";
+    label.textContent = QJC.i18n.t(role === "user" ? "msgYou" : "msgAssistant");
     var body = document.createElement("div");
     body.className = "msg-body";
     body.textContent = content;
@@ -106,25 +113,31 @@ QJC.chat = (function () {
   function send() {
     var text = inputEl.value.trim();
     if (!text) return;
-    if (!appState || !appState.segments || !appState.segments.length) { appendMessage("assistant", "请先翻译一篇文章。", "msg-error"); return; }
-    if (!appState.selectedIds || !appState.selectedIds.length) { appendMessage("assistant", "请先点击左侧某个段落，告诉我想改哪一段。", "msg-error"); return; }
     if (!QJC.api.isAI()) { showGuide(); return; }
+
+    // 文化检索板块：无需选段，直接问答
+    if (appState && appState.board === "culture") { sendCulture(text); return; }
+
+    // 翻译板块：需已翻译 + 已选段
+    if (!appState || !appState.segments || !appState.segments.length) { appendMessage("assistant", QJC.i18n.t("msgNeedTranslate"), "msg-error"); return; }
+    if (!appState.selectedIds || !appState.selectedIds.length) { appendMessage("assistant", QJC.i18n.t("msgNeedSelect"), "msg-error"); return; }
 
     inputEl.value = "";
     appendMessage("user", text);
     messages.push({ role: "user", content: text });
 
     sendEl.disabled = true;
-    sendEl.textContent = "改稿中…";
+    sendEl.textContent = QJC.i18n.t("msgEditing");
 
     // 立即插入「加载中」占位，避免用户干等
-    var loadingBubble = appendMessage("assistant", "正在想怎么改…", "msg-loading");
+    var loadingBubble = appendMessage("assistant", QJC.i18n.t("msgThinking"), "msg-loading");
 
     var payload = {
       segments: appState.segments,
       selectedIds: appState.selectedIds.slice(),
       message: text,
       history: messages.slice(0, -1),
+      langDir: appState.langDir,
       profileContext: QJC.profile.buildProfileContext()
     };
 
@@ -144,19 +157,60 @@ QJC.chat = (function () {
           }
         });
         QJC.render.applyUpdate(appState, compareContainer, updatedIds);
-        appendMessage("assistant", result.reply || "已更新。");
-        messages.push({ role: "assistant", content: result.reply || "已更新。" });
+        appendMessage("assistant", result.reply || QJC.i18n.t("msgUpdated"));
+        messages.push({ role: "assistant", content: result.reply || QJC.i18n.t("msgUpdated") });
         roundCount++;
         notify();
         maybeExtractPrefs();
       })
       .catch(function (err) {
         if (loadingBubble) loadingBubble.remove();
-        appendMessage("assistant", "改稿失败：" + (err && err.message ? err.message : err), "msg-error");
+        appendMessage("assistant", QJC.i18n.t("msgRewriteFail", { err: (err && err.message ? err.message : err) }), "msg-error");
       })
       .then(function () {
         sendEl.disabled = false;
-        sendEl.textContent = "发送";
+        sendEl.textContent = QJC.i18n.t("chatSend");
+        inputEl.focus();
+      });
+  }
+
+  /* 文化检索追问：不要求选段/译文，返回纯文本讲解 */
+  function sendCulture(text) {
+    if (!appState || !appState.source) { appendMessage("assistant", QJC.i18n.t("msgNeedCultureInput"), "msg-error"); return; }
+
+    inputEl.value = "";
+    appendMessage("user", text);
+    messages.push({ role: "user", content: text });
+
+    sendEl.disabled = true;
+    sendEl.textContent = QJC.i18n.t("msgAnswering");
+
+    var loadingBubble = appendMessage("assistant", QJC.i18n.t("msgLooking"), "msg-loading");
+
+    var payload = {
+      source: appState.source,
+      matchesSummary: QJC.culture.summarizeMatches(appState.matches),
+      message: text,
+      history: messages.slice(0, -1)
+    };
+
+    QJC.api.cultureAsk(payload)
+      .then(function (result) {
+        if (loadingBubble) loadingBubble.remove();
+        var reply = result && result.reply ? result.reply : QJC.i18n.t("msgCultureNoReply");
+        appendMessage("assistant", reply);
+        messages.push({ role: "assistant", content: reply });
+        roundCount++;
+        notify();
+        maybeExtractPrefs();
+      })
+      .catch(function (err) {
+        if (loadingBubble) loadingBubble.remove();
+        appendMessage("assistant", QJC.i18n.t("msgCultureFail", { err: (err && err.message ? err.message : err) }), "msg-error");
+      })
+      .then(function () {
+        sendEl.disabled = false;
+        sendEl.textContent = QJC.i18n.t("chatSend");
         inputEl.focus();
       });
   }
@@ -169,7 +223,7 @@ QJC.chat = (function () {
   }
 
   function showGuide() {
-    appendMessage("assistant", "当前是「兜底模式」（免费机翻 + 词典识别），对话改稿需 AI。\n\n请在本机双击 run-ai.bat 启动 AI 脚本，再刷新页面。", "msg-error");
+    appendMessage("assistant", QJC.i18n.t("msgFallbackGuide"), "msg-error");
   }
 
   return {

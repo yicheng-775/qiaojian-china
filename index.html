@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>桥见川渝 · AI 改稿助手</title>
-  <meta name="description" content="面向内容创作者的川渝中译英 AI 改稿助手：粘贴中文原稿，自动识别文化表达、生成英文译文，并可针对某段对话协商改稿。" />
-  <link rel="stylesheet" href="css/style.css?v=6" />
+  <title>桥见巴渝 · AI 改稿助手</title>
+  <meta name="description" content="面向内容创作者的巴渝中译英 AI 改稿助手：粘贴中文原稿，自动识别文化表达、生成英文译文，并可针对某段对话协商改稿。" />
+  <link rel="stylesheet" href="css/style.css?v=7" />
   <style>
     body { background: var(--paper); }
 
@@ -35,6 +35,7 @@
       transition: all .15s;
     }
     .icon-btn:hover { color: var(--cinnabar); border-color: var(--cinnabar); }
+    .lang-btn { width: auto; padding: 0 13px; font-size: 13px; font-weight: 700; }
 
     .container-narrow { max-width: 1000px; margin: 0 auto; padding: 0 24px; }
 
@@ -58,6 +59,29 @@
       background: #fff; border: var(--border-strong); color: var(--ink); transition: all .15s ease;
     }
     .chip:hover { border-color: var(--cinnabar); color: var(--cinnabar); transform: translateY(-1px); }
+
+    /* 板块切换 tab */
+    .board-tabs { display: flex; justify-content: center; gap: 8px; margin-bottom: 22px; }
+    .board-tab {
+      padding: 9px 26px; border-radius: 999px; font-size: 15px; font-weight: 700; cursor: pointer;
+      background: #fff; border: var(--border-strong); color: var(--ink-soft); transition: all .15s;
+    }
+    .board-tab.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+    .board-tab:not(.active):hover { border-color: var(--cinnabar); color: var(--cinnabar); }
+
+    /* 文化检索词卡 */
+    .culture-empty { padding: 28px 16px; text-align: center; color: var(--ink-faint); font-size: 14px; line-height: 1.9; }
+    .culture-card { padding: 16px 18px; border: var(--border); border-radius: var(--r-md); background: #fff; margin-bottom: 12px; }
+    .culture-card-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+    .culture-term { font-family: var(--font-serif); font-size: 18px; font-weight: 700; color: var(--ink); margin-right: 2px; }
+    .culture-chip { font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: rgba(27,94,90,.08); color: var(--teal); }
+    .culture-chip-region { background: rgba(194,64,42,.08); color: var(--cinnabar); }
+    .culture-chip-level { background: rgba(185,138,47,.14); color: var(--gold); }
+    .culture-reason { color: var(--ink-soft); font-size: 14px; line-height: 1.8; margin: 0 0 10px; }
+    .culture-sugs { margin: 0 0 12px; padding-left: 18px; }
+    .culture-sugs li { font-size: 13px; color: var(--ink-faint); margin-bottom: 5px; line-height: 1.6; }
+    .culture-ask { padding: 7px 16px; border-radius: 999px; border: var(--border-strong); background: #fff; font-size: 13px; font-weight: 600; color: var(--cinnabar); cursor: pointer; transition: all .15s; }
+    .culture-ask:hover { border-color: var(--cinnabar); background: rgba(194,64,42,.05); }
 
     /* 输入卡片 */
     .input-card {
@@ -148,11 +172,12 @@
     <div class="topbar-inner">
       <a class="brand" href="index.html">
         <span class="brand-mark">桥</span>
-        <span>桥见川渝 <small>· AI 改稿助手</small></span>
+        <span>桥见巴渝 <small>· <span data-i18n="brandTag">AI 改稿助手</span></small></span>
       </a>
       <nav>
-        <a href="profile.html" class="hide-sm">我的画像</a>
-        <a href="about.html" class="hide-sm">关于项目</a>
+        <a href="profile.html" class="hide-sm" data-i18n="navProfile">我的画像</a>
+        <a href="about.html" class="hide-sm" data-i18n="navAbout">关于项目</a>
+        <button class="icon-btn lang-btn" id="langBtn" title="中 / EN">EN</button>
         <button class="icon-btn" id="openHistory" title="历史记录" aria-label="历史记录">📜</button>
         <button class="icon-btn" id="openSettings" title="设置" aria-label="设置">⚙</button>
       </nav>
@@ -163,31 +188,38 @@
     <!-- ============ 输入区 ============ -->
     <section class="hero">
       <div class="container-narrow">
-        <span class="hero-kicker">川渝中译英 · 跨文化编辑</span>
-        <h1 class="hero-title">让川渝故事，<br>被世界<em>读懂</em></h1>
-        <p class="hero-sub">粘贴中文原稿，自动识别川渝文化表达、生成英文译文，并可针对任意段落对话协商改稿。</p>
+        <div class="board-tabs" id="boardTabs" role="tablist">
+          <button class="board-tab active" data-board="translate" type="button" data-i18n="tabTranslate">翻译</button>
+          <button class="board-tab" data-board="culture" type="button" data-i18n="tabCulture">文化检索</button>
+        </div>
+        <span class="hero-kicker" data-i18n="heroKicker">巴渝中译英 · 跨文化编辑</span>
+        <h1 class="hero-title"><span data-i18n="heroTitlePrefix">让世界读懂</span><em data-i18n="heroTitleEm">巴渝</em><span data-i18n="heroTitleSuffix">故事</span></h1>
+        <p class="hero-sub" data-i18n="heroSub">粘贴中文原稿，自动识别巴渝文化表达、生成英文译文，并可针对任意段落对话协商改稿。</p>
 
         <div class="examples">
-          <span class="examples-label">试一个示例：</span>
-          <button class="chip" data-case="chengdu">🍵 成都慢生活</button>
-          <button class="chip" data-case="chongqing">🌶 重庆江湖</button>
-          <button class="chip" data-case="feiyi">🎭 巴蜀非遗</button>
-          <button class="chip" data-case="landmark">🌆 重庆地标</button>
+          <span class="examples-label" data-i18n="examplesLabel">试一个示例：</span>
+          <button class="chip" data-case="chongqing" data-i18n="caseChongqing">🌶 重庆江湖</button>
+          <button class="chip" data-case="feiyi" data-i18n="caseFeiyi">🎭 巴渝非遗</button>
+          <button class="chip" data-case="landmark" data-i18n="caseLandmark">🌆 重庆地标</button>
         </div>
 
         <div class="input-card">
-          <textarea class="origin" id="originText" placeholder="在此粘贴你的中文原稿，例如：在成都，慢不是懒，而是一种生活态度。清晨的茶馆里，人们用盖碗茶泡开一天，摆起龙门阵……"></textarea>
+          <textarea class="origin" id="originText" placeholder="在此粘贴你的中文原稿，例如：重庆是一座建在山上的城市，人称山城，又多雾，故又称雾都。夜幕降临时，洪崖洞的吊脚楼灯火通明……"></textarea>
           <div class="input-actions">
             <div class="input-left">
+              <div class="mode-toggle" id="dirToggle" role="group" aria-label="翻译方向">
+                <button class="mt-btn active" data-dir="zh2en" type="button" data-i18n="dirZh2en">中译英</button>
+                <button class="mt-btn" data-dir="en2zh" type="button" data-i18n="dirEn2zh">英译中</button>
+              </div>
               <div class="mode-toggle" id="modeToggle" role="group" aria-label="翻译方式">
-                <button class="mt-btn active" data-mode="oneclick" type="button">⚡ 一键翻译</button>
-                <button class="mt-btn" data-mode="collab" type="button">💬 对话协作</button>
+                <button class="mt-btn active" data-mode="oneclick" type="button" data-i18n="modeOneclick">⚡ 一键翻译</button>
+                <button class="mt-btn" data-mode="collab" type="button" data-i18n="modeCollab">💬 对话协作</button>
               </div>
               <span class="input-hint"><span id="modeBadge" class="mode-badge mode-fallback">探测中…</span></span>
             </div>
             <div class="input-btns">
-              <button class="upload-btn" id="uploadBtn" type="button">📄 上传文档</button>
-              <button class="analyze-btn" id="analyzeBtn">开始翻译 →</button>
+              <button class="upload-btn" id="uploadBtn" type="button" data-i18n="uploadDoc">📄 上传文档</button>
+              <button class="analyze-btn" id="analyzeBtn" data-i18n="analyzeTranslate">开始翻译 →</button>
             </div>
           </div>
           <input type="file" id="fileInput" accept=".txt,.docx" hidden />
@@ -199,7 +231,7 @@
     <section class="results" id="results" hidden>
       <div class="container-narrow">
         <div class="result-head">
-          <div class="result-title">中英对照 · 对话改稿</div>
+          <div class="result-title" data-i18n="resultTitle">中英对照 · 对话改稿</div>
           <div class="result-stats" id="resultStats"></div>
         </div>
 
@@ -209,30 +241,31 @@
           <!-- 左栏：中英对照 -->
           <div class="card">
             <div class="col-title">
-              <h3><span class="dotc"></span>中英对照</h3>
+              <h3><span class="dotc"></span><span id="leftColTitle" data-i18n="leftColTranslate">中英对照</span></h3>
               <div class="col-actions">
-                <button class="save-btn" id="saveBtn" hidden>保存成稿</button>
-                <button class="save-btn" id="exportBtn">导出 .txt</button>
+                <button class="save-btn" id="saveBtn" hidden data-i18n="saveDraft">保存成稿</button>
+                <button class="save-btn" id="exportBtn" data-i18n="exportTxt">导出 .txt</button>
               </div>
             </div>
             <div id="compareView"></div>
-            <div class="legend">
-              <li><span class="sw sw-cultural"></span>文化负载词</li>
-              <li><span class="sw sw-metaphor"></span>隐喻意象</li>
-              <li><span class="sw sw-context"></span>强语境依赖</li>
+            <div id="cultureView" hidden></div>
+            <div class="legend" id="legend">
+              <li><span class="sw sw-cultural"></span><span data-i18n="legendCultural">文化负载词</span></li>
+              <li><span class="sw sw-metaphor"></span><span data-i18n="legendMetaphor">隐喻意象</span></li>
+              <li><span class="sw sw-context"></span><span data-i18n="legendContext">强语境依赖</span></li>
             </div>
           </div>
 
           <!-- 右栏：对话改稿 -->
           <div class="card chat-panel">
             <div class="col-title">
-              <h3><span class="dotc" style="background:var(--teal)"></span>对话改稿</h3>
+              <h3><span class="dotc" style="background:var(--teal)"></span><span data-i18n="chatPanelTitle">对话改稿</span></h3>
             </div>
             <div class="chat-hint" id="chatHint">先翻译一篇文章，再点击左侧段落开始改稿。</div>
             <div class="chat-messages" id="chatMessages"></div>
             <div class="chat-input-row">
-              <textarea id="chatInput" rows="2" placeholder="例如：把这段的「火锅」翻成 hotpot，并说明是重庆麻辣……"></textarea>
-              <button class="chat-send" id="chatSend">发送</button>
+              <textarea id="chatInput" rows="2" placeholder="例如：把这段的「火锅」翻成 hotpot，并说明是重庆麻辣……" data-i18n-placeholder="chatPh"></textarea>
+              <button class="chat-send" id="chatSend" data-i18n="chatSend">发送</button>
             </div>
           </div>
         </div>
@@ -244,52 +277,57 @@
   <div class="modal" id="settingsModal" hidden>
     <div class="modal-card">
       <div class="modal-head">
-        <h3>偏好设置</h3>
+        <h3 data-i18n="settingsTitle">偏好设置</h3>
         <button class="icon-btn" id="closeSettings" aria-label="关闭">✕</button>
       </div>
-      <p class="modal-sub">这些偏好会注入 AI 改稿的「用户画像」，让译文更贴合你的写作习惯。</p>
+      <p class="modal-sub" data-i18n="settingsSub">这些偏好会注入 AI 改稿的「用户画像」，让译文更贴合你的写作习惯。</p>
 
       <div class="form-row">
-        <label class="form-label" for="setAudience">目标读者</label>
+        <label class="form-label" for="setAudience" data-i18n="setAudience">目标读者</label>
         <select id="setAudience">
-          <option value="general">通用读者</option>
-          <option value="news">新闻读者</option>
-          <option value="academic">学术读者</option>
-          <option value="youth">年轻读者</option>
+          <option value="general" data-i18n="audienceGeneral">通用读者</option>
+          <option value="news" data-i18n="audienceNews">新闻读者</option>
+          <option value="academic" data-i18n="audienceAcademic">学术读者</option>
+          <option value="youth" data-i18n="audienceYouth">年轻读者</option>
         </select>
       </div>
 
       <div class="form-row">
-        <label class="form-label" for="setTone">语气偏好</label>
+        <label class="form-label" for="setTone" data-i18n="setTone">语气偏好</label>
         <select id="setTone">
-          <option value="faithful">忠实原文</option>
-          <option value="fluent">流畅归化</option>
-          <option value="concise">精简</option>
+          <option value="faithful" data-i18n="toneFaithful">忠实原文</option>
+          <option value="fluent" data-i18n="toneFluent">流畅归化</option>
+          <option value="concise" data-i18n="toneConcise">精简</option>
         </select>
       </div>
 
       <div class="form-row">
-        <label class="form-label" for="setDeepseekKey">DeepSeek API Key（自填）</label>
-        <input type="password" id="setDeepseekKey" placeholder="sk-… 填入你自己的 key" autocomplete="off" />
-        <div class="modal-note" style="margin-top:6px">留空则无法使用 AI，只能走免费机翻。key 只存在你浏览器本机，不随导出打包。</div>
+        <label class="form-label" for="setDeepseekKey" data-i18n="setKey">DeepSeek API Key（自填）</label>
+        <input type="password" id="setDeepseekKey" placeholder="sk-… 填入你自己的 key" data-i18n-placeholder="setKeyPh" autocomplete="off" />
+        <div class="modal-note" style="margin-top:6px" data-i18n="setKeyNote">留空则无法使用 AI，只能走免费机翻。key 只存在你浏览器本机，不随导出打包。</div>
       </div>
 
       <div class="form-row form-check">
         <input type="checkbox" id="setAnnotate" checked />
-        <label for="setAnnotate">文化词首见处加括号注释</label>
+        <label for="setAnnotate" data-i18n="setAnnotate">文化词首见处加括号注释</label>
       </div>
 
       <div class="form-row form-check">
         <input type="checkbox" id="setDomestication" checked />
-        <label for="setDomestication">归化倾向（贴近英语读者）</label>
+        <label for="setDomestication" data-i18n="setDomestication">归化倾向（贴近英语读者）</label>
+      </div>
+
+      <div class="form-row form-check">
+        <input type="checkbox" id="setProfile" checked />
+        <label for="setProfile" data-i18n="setProfile">开启用户画像（关闭后不再累积或读取你的写作数据）</label>
       </div>
 
       <div class="modal-actions">
-        <button class="btn btn-ghost btn-sm" id="closeSettings2">取消</button>
-        <button class="btn btn-primary btn-sm" id="saveSettingsBtn">保存</button>
+        <button class="btn btn-ghost btn-sm" id="closeSettings2" data-i18n="cancel">取消</button>
+        <button class="btn btn-primary btn-sm" id="saveSettingsBtn" data-i18n="save">保存</button>
       </div>
 
-      <p class="modal-note">提示：AI 模式需在本机双击 <code>run-ai.bat</code> 启动本地脚本（详见 README）。</p>
+      <p class="modal-note" data-i18n="settingsNote">提示：AI 模式需在本机双击 <code>run-ai.bat</code> 启动本地脚本（详见 README）。</p>
     </div>
   </div>
 
@@ -297,14 +335,14 @@
   <div class="modal" id="historyModal" hidden>
     <div class="modal-card">
       <div class="modal-head">
-        <h3>📜 历史记录</h3>
+        <h3 data-i18n="historyTitle">📜 历史记录</h3>
         <button class="icon-btn" id="closeHistory" aria-label="关闭">✕</button>
       </div>
-      <p class="modal-sub">已保存的翻译成稿与对话记录。点「打开」可恢复当时的原文、译文与对话。</p>
+      <p class="modal-sub" data-i18n="historySub">已保存的翻译成稿与对话记录。点「打开」可恢复当时的原文、译文与对话。</p>
       <div class="hist-list" id="historyList"></div>
       <div class="modal-actions">
-        <button class="btn btn-ghost btn-sm" id="clearHistory">清空历史</button>
-        <button class="btn btn-primary btn-sm" id="closeHistory2">关闭</button>
+        <button class="btn btn-ghost btn-sm" id="clearHistory" data-i18n="clearHistory">清空历史</button>
+        <button class="btn btn-primary btn-sm" id="closeHistory2" data-i18n="close">关闭</button>
       </div>
     </div>
   </div>
@@ -313,38 +351,40 @@
   <div class="modal login-overlay" id="loginModal">
     <div class="modal-card">
       <div class="modal-head">
-        <h3>🔒 访问需要密码</h3>
+        <h3 data-i18n="loginTitle">🔒 访问需要密码</h3>
       </div>
-      <p class="modal-sub">本工具内置了作者的 AI 密钥，请输入访问密码后使用。</p>
+      <p class="modal-sub" data-i18n="loginSub">本工具内置了作者的 AI 密钥，请输入访问密码后使用。</p>
       <div class="form-row">
-        <label class="form-label" for="loginPass">访问密码</label>
-        <input type="password" id="loginPass" autocomplete="off" placeholder="请输入访问密码" />
+        <label class="form-label" for="loginPass" data-i18n="loginPass">访问密码</label>
+        <input type="password" id="loginPass" autocomplete="off" placeholder="请输入访问密码" data-i18n-placeholder="loginPh" />
       </div>
-      <div class="error-hint" id="loginError" hidden>密码错误，请重试。</div>
+      <div class="error-hint" id="loginError" hidden data-i18n="loginError">密码错误，请重试。</div>
       <div class="modal-actions">
-        <button class="btn btn-primary" id="loginBtn">进入</button>
+        <button class="btn btn-primary" id="loginBtn" data-i18n="loginEnter">进入</button>
       </div>
     </div>
   </div>
 
   <footer class="footer">
     <div class="footer-inner">
-      <p><strong style="color:var(--ink)">桥见川渝</strong> · 川渝中译英 AI 改稿助手</p>
-      <p>了解项目背景 → <a href="about.html">关于项目</a> · <a href="profile.html">我的画像</a></p>
+      <p><strong style="color:var(--ink)">桥见巴渝</strong> · <span data-i18n="footerTagline">巴渝中译英 AI 改稿助手</span></p>
+      <p>了解项目背景 → <a href="about.html" data-i18n="navAbout">关于项目</a> · <a href="profile.html" data-i18n="navProfile">我的画像</a></p>
     </div>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js" async></script>
-  <script src="js/config.js?v=6"></script>
-  <script src="js/data.js?v=7"></script>
-  <script src="js/corpus.js?v=7"></script>
-  <script src="js/storage.js?v=6"></script>
-  <script src="js/prompts.js?v=8"></script>
-  <script src="js/segments.js?v=6"></script>
-  <script src="js/api.js?v=8"></script>
-  <script src="js/profile.js?v=6"></script>
-  <script src="js/render.js?v=7"></script>
-  <script src="js/chat.js?v=7"></script>
-  <script src="js/app.js?v=9"></script>
+  <script src="js/config.js?v=7"></script>
+  <script src="js/i18n.js?v=1"></script>
+  <script src="js/data.js?v=8"></script>
+  <script src="js/corpus.js?v=8"></script>
+  <script src="js/storage.js?v=7"></script>
+  <script src="js/prompts.js?v=9"></script>
+  <script src="js/segments.js?v=7"></script>
+  <script src="js/api.js?v=9"></script>
+  <script src="js/profile.js?v=7"></script>
+  <script src="js/render.js?v=8"></script>
+  <script src="js/culture.js?v=1"></script>
+  <script src="js/chat.js?v=8"></script>
+  <script src="js/app.js?v=10"></script>
 </body>
 </html>

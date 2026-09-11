@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>关于项目 · 桥见川渝</title>
-  <meta name="description" content="桥见川渝——AI 赋能的川渝（四川+重庆）民间叙事跨文化传播实践，项目背景、方案与团队介绍。" />
+  <title>关于项目 · 桥见巴渝</title>
+  <meta name="description" content="桥见巴渝——AI 赋能的巴渝（重庆）民间叙事跨文化传播实践，项目背景、方案与团队介绍。" />
   <link rel="stylesheet" href="css/style.css" />
   <style>
     .nav {
@@ -19,6 +19,8 @@
     .nav-links { display: flex; align-items: center; gap: 26px; }
     .nav-links a { font-size: 14.5px; color: var(--ink-soft); font-weight: 500; transition: color .16s; }
     .nav-links a:hover { color: var(--cinnabar); }
+    .lang-btn { background: transparent; border: 1px solid rgba(33,29,23,.18); border-radius: 8px; padding: 5px 12px; font-size: 13px; font-weight: 700; color: var(--ink-soft); cursor: pointer; transition: color .16s, border-color .16s; }
+    .lang-btn:hover { color: var(--cinnabar); border-color: var(--cinnabar); }
 
     .hero { padding: 64px 0 48px; background: radial-gradient(900px 400px at 80% -10%, rgba(230,201,135,.22), transparent 60%), var(--paper); border-bottom: 1px solid rgba(33,29,23,.06); }
     .hero-inner { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
@@ -112,24 +114,25 @@
     <div class="nav-inner">
       <a class="brand" href="index.html">
         <span class="brand-mark">桥</span>
-        <span>桥见川渝 <span style="font-weight:400;color:var(--ink-faint);font-size:13px;">CHUANYU-BRIDGE</span></span>
+        <span>桥见巴渝 <span style="font-weight:400;color:var(--ink-faint);font-size:13px;">BAYU-BRIDGE</span></span>
       </a>
       <nav class="nav-links">
-        <a href="index.html">使用工具</a>
+        <a href="index.html" data-i18n="navTool">使用工具</a>
         <a href="#pains">选题定位</a>
         <a href="#solution">总体思路</a>
         <a href="#plan">实施方案</a>
         <a href="#team">团队</a>
       </nav>
-      <a class="btn btn-primary btn-sm" href="index.html">立即使用工具 →</a>
+      <button class="lang-btn" id="langBtn">EN</button>
+      <a class="btn btn-primary btn-sm" href="index.html" data-i18n="aboutCta">立即使用工具 →</a>
     </div>
   </header>
 
   <section class="hero">
     <div class="hero-inner">
-      <span class="eyebrow">关于项目</span>
-      <h1>桥见<span class="accent">川渝</span></h1>
-      <p class="lead">AI 赋能的川渝（四川 + 重庆）民间叙事跨文化传播实践 —— 看见真实的川渝市井生活与巴蜀文化，搭建中外民间文化沟通的桥梁。</p>
+      <span class="eyebrow" data-i18n="navAbout">关于项目</span>
+      <h1>桥见<span class="accent">巴渝</span></h1>
+      <p class="lead">AI 赋能的巴渝（重庆）民间叙事跨文化传播实践 —— 看见真实的巴渝市井生活与巴渝文化，搭建中外民间文化沟通的桥梁。</p>
       <div class="hero-actions">
         <a class="btn btn-primary" href="index.html">使用 AI 改稿助手 →</a>
         <a class="btn btn-ghost" href="#pains">了解方案</a>
@@ -142,7 +145,7 @@
       <div class="section-head">
         <span class="eyebrow">选题定位</span>
         <h2 class="section-title">文化折扣：跨文化传播的四重现实矛盾</h2>
-        <p class="section-lead">对外川渝民间文化叙事创作，除文本翻译层面问题外，还存在工具能力缺陷、模型固有文化缺陷与学术数据瓶颈四重矛盾。</p>
+        <p class="section-lead">对外巴渝民间文化叙事创作，除文本翻译层面问题外，还存在工具能力缺陷、模型固有文化缺陷与学术数据瓶颈四重矛盾。</p>
       </div>
       <div class="pains">
         <div class="pain"><span class="pain-index">A</span><h3>文本创作层面 · 跨文化误读频发</h3><p>文化负载词直接直译、本土语境依赖表达未经调适、自带隐含价值预设，引发海外受众理解偏差。</p><p class="pain-note">高低语境编码—解码错位带来的文化转译难题</p></div>
@@ -161,7 +164,7 @@
         <h2 class="section-title">三位一体的实践方案</h2>
       </div>
       <div class="pillars">
-        <div class="pillar"><div class="pillar-num">01 · 内容筛选</div><h3>内容筛选机制</h3><p>聚焦川渝两大文化板块，全程规避时政、制度对比与意识形态强相关内容。</p><div class="steps"><div class="step"><i>✓</i>成都慢生活：盖碗茶、茶馆、龙门阵</div><div class="step"><i>✓</i>重庆码头江湖：火锅、洪崖洞、棒棒军</div><div class="step"><i>✓</i>巴蜀非遗：变脸、蜀绣、川江号子</div></div></div>
+        <div class="pillar"><div class="pillar-num">01 · 内容筛选</div><h3>内容筛选机制</h3><p>聚焦巴渝两大文化板块，全程规避时政、制度对比与意识形态强相关内容。</p><div class="steps"><div class="step"><i>✓</i>重庆码头江湖：火锅、洪崖洞、棒棒军</div><div class="step"><i>✓</i>巴渝非遗：变脸、蜀绣、川江号子</div></div></div>
         <div class="pillar"><div class="pillar-num">02 · AI 工具</div><h3>AI 辅助工具原型</h3><p>在文本生产环节前置识别文化敏感点与误读风险，给出可落地的改写建议，坚持人机协同。</p><div class="steps"><div class="step"><i>✓</i>前置识别文化敏感点</div><div class="step"><i>✓</i>提供多套改写方案</div><div class="step"><i>✓</i>弱化 AI 偏见</div></div></div>
         <div class="pillar"><div class="pillar-num">03 · 传播路径</div><h3>分层传播路径</h3><p>三阶段圈层式海外传播，让优质文本真正触达海外普通受众。</p><div class="steps"><div class="step"><i>①</i>种子渗透：留学生试用反馈</div><div class="step"><i>②</i>口碑裂变：海外社交扩散</div><div class="step"><i>③</i>官方补位：平台轻量投放</div></div></div>
       </div>
@@ -238,7 +241,7 @@
         <p class="section-lead">12 人团队：本科生 10 人 + 研究生 2 人（研究生占比约 16.7%）。</p>
       </div>
       <div class="team-summary">
-        <div class="team-card"><h3>本科生团队（10 人）</h3><p>以中译英为主攻方向，搜集川渝跨文化传播案例与真实误读案例，覆盖成都慢生活、重庆码头文化与巴蜀非遗三大主题。</p><div class="team-major"><span class="tag tag-red">新闻传播</span><span class="tag tag-teal">英语</span><span class="tag tag-gold">川渝文化</span><span class="tag tag-gray">中文写作</span></div></div>
+        <div class="team-card"><h3>本科生团队（10 人）</h3><p>以中译英为主攻方向，搜集巴渝跨文化传播案例与真实误读案例，覆盖重庆码头文化与巴渝非遗两大主题。</p><div class="team-major"><span class="tag tag-red">新闻传播</span><span class="tag tag-teal">英语</span><span class="tag tag-gold">巴渝文化</span><span class="tag tag-gray">中文写作</span></div></div>
         <div class="team-card"><h3>研究生团队（2 人）</h3><p>梳理跨文化传播理论脉络与 AI 辅助文本写作研究现状，关注大模型跨文化偏见前沿。</p><div class="team-major"><span class="tag tag-red">翻译硕士 MTI</span><span class="tag tag-teal">外国语言文学</span></div></div>
       </div>
     </div>
@@ -271,9 +274,22 @@
 
   <footer class="footer">
     <div class="footer-inner">
-      <a class="brand" href="index.html"><span class="brand-mark">桥</span><span>桥见川渝</span></a>
-      <p>AI 赋能的川渝民间叙事跨文化传播实践</p>
+      <a class="brand" href="index.html"><span class="brand-mark">桥</span><span>桥见巴渝</span></a>
+      <p>AI 赋能的巴渝民间叙事跨文化传播实践</p>
     </div>
   </footer>
+
+  <script src="js/config.js?v=7"></script>
+  <script src="js/i18n.js?v=1"></script>
+  <script src="js/storage.js?v=7"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      QJC.i18n.setLang(QJC.storage.loadSettings().uiLang || "zh");
+      var btn = document.getElementById("langBtn");
+      if (btn) btn.addEventListener("click", function () {
+        QJC.i18n.setLang(QJC.i18n.getLang() === "zh" ? "en" : "zh");
+      });
+    });
+  </script>
 </body>
 </html>

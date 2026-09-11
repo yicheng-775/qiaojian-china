@@ -1,5 +1,5 @@
 /* ==========================================================================
-   桥见川渝 · API 适配层
+   桥见巴渝 · API 适配层
    统一对外接口：启动时探测本地 AI 代理，通了走 DeepSeek（AI 模式），
    不通自动降级到 MyMemory 免费机翻（兜底模式）。
    ========================================================================== */
@@ -107,10 +107,11 @@ QJC.api = (function () {
   }
 
   /* ---------- MyMemory 免费机翻（兜底模式） ---------- */
-  function mymemory(text) {
-    var chunks = QJC.segments.splitText(text, QJC.config.maxChunkLen);
+  function mymemory(text, langDir) {
+    var chunks = QJC.segments.splitText(text, QJC.config.maxChunkLen, langDir);
+    var langpair = langDir === "en2zh" ? "en|zh-CN" : "zh-CN|en";
     return Promise.all(chunks.map(function (chunk) {
-      var url = QJC.config.MYMEMORY + "?q=" + encodeURIComponent(chunk) + "&langpair=zh-CN|en";
+      var url = QJC.config.MYMEMORY + "?q=" + encodeURIComponent(chunk) + "&langpair=" + langpair;
       var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
       var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, 8000) : null;
       function clearTimer() { if (timer) { clearTimeout(timer); timer = null; } }
@@ -131,9 +132,9 @@ QJC.api = (function () {
     })).then(function (parts) { return parts.join(""); });
   }
 
-  function translateFallback(segments) {
+  function translateFallback(segments, langDir) {
     return Promise.all(segments.map(function (seg) {
-      return mymemory(seg.source).then(function (text) { seg.translation = text; return seg; });
+      return mymemory(seg.source, langDir).then(function (text) { seg.translation = text; return seg; });
     }));
   }
 
@@ -142,14 +143,14 @@ QJC.api = (function () {
      ====================================================================== */
 
   /* 翻译：AI 模式逐段文化适配（每段独立短调用，稳过 10s 函数超时）；兜底模式逐段机翻 */
-  function translate(segments, profileContext, dictHints, onProgress) {
-    if (!state.aiEnabled) return translateFallback(segments);
+  function translate(segments, profileContext, dictHints, langDir, onProgress) {
+    if (!state.aiEnabled) return translateFallback(segments, langDir);
     var total = segments.length;
     var done = 0;
     var chain = Promise.resolve();
     segments.forEach(function (seg) {
       chain = chain.then(function () {
-        var pr = QJC.prompts.translateSegment(seg, profileContext, dictHints);
+        var pr = QJC.prompts.translateSegment(seg, profileContext, dictHints, langDir);
         return aiChat([
           { role: "system", content: pr.system },
           { role: "user", content: pr.user }
@@ -177,9 +178,9 @@ QJC.api = (function () {
   }
 
   /* 领域/体裁/风格分类：仅 AI 模式 */
-  function classify(source) {
+  function classify(source, langDir) {
     if (!state.aiEnabled) return Promise.reject(new Error("画像需 AI 模式"));
-    var pr = QJC.prompts.classify(source);
+    var pr = QJC.prompts.classify(source, langDir);
     return aiChat([
       { role: "system", content: pr.system },
       { role: "user", content: pr.user }
@@ -196,6 +197,16 @@ QJC.api = (function () {
     ], QJC.config.temperature.profile);
   }
 
+  /* 文化检索追问：仅 AI 模式，返回纯文本中文讲解 */
+  function cultureAsk(payload) {
+    if (!state.aiEnabled) return Promise.reject(new Error("文化检索追问需 AI 模式"));
+    var pr = QJC.prompts.cultureAsk(payload);
+    return aiChat([
+      { role: "system", content: pr.system },
+      { role: "user", content: pr.user }
+    ], QJC.config.temperature.cultureAsk);
+  }
+
   return {
     probeAI: probeAI,
     isAI: isAI,
@@ -203,6 +214,7 @@ QJC.api = (function () {
     translate: translate,
     rewrite: rewrite,
     classify: classify,
-    analyzeProfile: analyzeProfile
+    analyzeProfile: analyzeProfile,
+    cultureAsk: cultureAsk
   };
 })();

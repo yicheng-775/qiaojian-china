@@ -1,108 +1,26 @@
 /* ==========================================================================
-   桥见川渝 · 数据层
-   川渝文化词典 + 内置对照案例（中/英）+ 领域/体裁/写作风格枚举
-   说明：词典规则匹配用于「兜底模式」识别与「AI 模式」的术语参考；
-        多语种译文为预先编校的演示样本，AI 模式由 DeepSeek 实时生成。
+  桥见巴渝 · 数据层
+  巴渝文化词典 + 内置对照案例（中/英）+ 领域/体裁/写作风格枚举
+  说明：词典规则匹配用于「兜底模式」识别与「AI 模式」的术语参考；
+        对照译文为预先编校的演示样本，AI 模式由 DeepSeek 实时生成。
    ========================================================================== */
 
 var QJC = window.QJC = window.QJC || {};
 
 /* --------------------------------------------------------------------------
-   1. 川渝文化敏感点词典
-   category: cultural 文化负载词 | metaphor 隐喻意象 | context 强语境依赖表达
-   level:    高 / 中 / 低
-   region:   成都（慢生活·安逸）/ 重庆（麻辣·码头江湖）/ 巴蜀（两地共赏）
+  1. 巴渝文化敏感点词典
+  category: cultural 文化负载词 | metaphor 隐喻意象 | context 强语境依赖表达
+  level:    高 / 中 / 低
+  region:   重庆（麻辣·码头江湖）/ 巴渝（非遗·地标·共赏）
    -------------------------------------------------------------------------- */
 QJC.dictionary = [
-  /* —— 成都 · 慢生活（安逸调性）—— */
-  {
-    term: "盖碗茶",
-    category: "cultural",
-    level: "中",
-    region: "成都",
-    reason: "成都茶馆的标志性茶具与饮茶方式，承载「慢生活」与「市井闲适」双重意象，直译 'lidded cup of tea' 丢失器具形制与场景感。",
-    suggestions: ["音译+注释：gaiawan — a Sichuan lidded cup of tea", "补场景：在竹椅木桌的茶馆里慢慢啜饮，凸显「慢」的韵味。"]
-  },
-  {
-    term: "茶馆",
-    category: "context",
-    level: "低",
-    region: "成都",
-    reason: "成都茶馆不只是喝茶场所，更是社交、听评书、摆龙门阵的公共空间，直译 teahouse 信息不足。",
-    suggestions: ["直译 teahouse，可补「公共社交空间」属性：a teahouse where locals gather to chat and while away the afternoon。"]
-  },
-  {
-    term: "龙门阵",
-    category: "metaphor",
-    level: "高",
-    region: "成都",
-    reason: "川渝方言，指「海阔天空地闲聊、讲故事」，与龙门（高门/官方）无关，直译 dragon-gate formation 完全失效。",
-    suggestions: ["意译：longmenzhen — leisurely, wide-ranging chitchat", "可译 to shoot the breeze / to have a good long chat，保留「随性、无目的」语义。"]
-  },
-  {
-    term: "巴适",
-    category: "cultural",
-    level: "高",
-    region: "成都",
-    reason: "川渝方言感叹词，表达「舒服、安逸、惬意」的复合感受，是成都慢生活的核心情绪词，无对应英文词。",
-    suggestions: ["音译+注释：bashe — comfortable and contented", "意译替换：cozy / just right / utterly satisfying，视语境选择。"]
-  },
-  {
-    term: "安逸",
-    category: "cultural",
-    level: "高",
-    region: "成都",
-    reason: "与「巴适」近义的川渝方言词，表达「闲适自在、不慌不忙」的生活态度，直译 easy/comfortable 过于单薄。",
-    suggestions: ["音译+注释：anyi — laid-back and carefree", "意译：a laid-back, unhurried ease of living。"]
-  },
-  {
-    term: "宽窄巷子",
-    category: "cultural",
-    level: "低",
-    region: "成都",
-    reason: "成都历史文化街区专名，'Kuanzhai' 若只音译不加注释，海外受众无法感知其「老成都街巷」属性。",
-    suggestions: ["音译+注释：Kuanzhai Alleys — a historic quarter of old Chengdu", "首见处补「清代老街巷」背景。"]
-  },
-  {
-    term: "大熊猫",
-    category: "cultural",
-    level: "低",
-    region: "成都",
-    reason: "四川名片，国际认知度极高，giant panda 已是通行译名，歧义可控。",
-    suggestions: ["直译 giant panda，可补「四川是其主要栖息地」的背景信息。"]
-  },
-  {
-    term: "担担面",
-    category: "cultural",
-    level: "中",
-    region: "成都",
-    reason: "四川名小吃，'dandan noodles' 需补「担子叫卖」的市井渊源与麻辣口感，才能建立画面感。",
-    suggestions: ["音译+描述：dandan noodles — spicy Sichuan noodles once sold from shoulder poles", "补口感与历史。"]
-  },
-  {
-    term: "钟水饺",
-    category: "cultural",
-    level: "低",
-    region: "成都",
-    reason: "成都传统小吃，甜辣口的红油水饺，直译钟氏水饺丢失「甜辣红油」特色。",
-    suggestions: ["音译+描述：Zhong dumplings — Chengdu pork dumplings in sweet-spicy chili oil。"]
-  },
-  {
-    term: "冰粉",
-    category: "cultural",
-    level: "低",
-    region: "成都",
-    reason: "川渝夏季消暑甜品，透明啫喱配红糖，海外无对应物。",
-    suggestions: ["描述式：bingfen — a jelly-like summer dessert topped with brown-sugar syrup。"]
-  },
-
   /* —— 重庆 · 码头江湖（麻辣调性）—— */
   {
     term: "火锅",
     category: "cultural",
     level: "低",
     region: "重庆",
-    reason: "hotpot 已有一定国际认知，但川渝火锅的「麻辣」「围炉共食」社交属性需点明。",
+    reason: "hotpot 已有一定国际认知，但重庆火锅的「麻辣」「围炉共食」社交属性需点明。",
     suggestions: ["直译 hotpot，可补：a communal pot of fiery broth for dipping", "点明「麻辣」与「围坐共食」的社交场景。"]
   },
   {
@@ -158,16 +76,16 @@ QJC.dictionary = [
     category: "cultural",
     level: "高",
     region: "重庆",
-    reason: "川渝历史上的民间帮会组织，蕴含「义气、江湖」等复杂社会史内涵，直译易带负面色彩，需谨慎处理。",
-    suggestions: ["解释性译法：Paoge — a historic fraternal brotherhood of the Sichuan-Chongqing riverside", "点明「重义气」的历史文化面向，弱化帮会负面联想。"]
+    reason: "巴渝历史上的民间帮会组织，蕴含「义气、江湖」等复杂社会史内涵，直译易带负面色彩，需谨慎处理。",
+    suggestions: ["解释性译法：Paoge — a historic fraternal brotherhood of the Chongqing riverside", "点明「重义气」的历史文化面向，弱化帮会负面联想。"]
   },
 
-  /* —— 巴蜀共赏 · 非遗 / 地标 —— */
+  /* —— 巴渝共赏 · 非遗 / 地标 —— */
   {
     term: "川剧变脸",
     category: "cultural",
     level: "中",
-    region: "巴蜀",
+    region: "巴渝",
     reason: "川剧绝技，'face-changing' 可直译，但需补「川剧」语境，避免与西方魔术/化妆混同。",
     suggestions: ["意译+注释：face-changing — the signature mask-switching feat of Sichuan opera", "点明是川剧表演艺术而非特技。"]
   },
@@ -175,7 +93,7 @@ QJC.dictionary = [
     term: "蜀绣",
     category: "cultural",
     level: "中",
-    region: "巴蜀",
+    region: "巴渝",
     reason: "中国四大名绣之一，'Shu embroidery' 需补「四川」指代与工艺地位。",
     suggestions: ["音译+注释：Shu embroidery — one of China's four great embroidery traditions, from Sichuan。"]
   },
@@ -183,7 +101,7 @@ QJC.dictionary = [
     term: "川江号子",
     category: "cultural",
     level: "中",
-    region: "巴蜀",
+    region: "巴渝",
     reason: "川江船工劳动歌谣，'the river chants' 需补「船工拉纤」的劳动场景与非遗属性。",
     suggestions: ["描述+注释：the river chants of Sichuan boatmen — a UNESCO-listed work song tradition", "补劳动场景。"]
   },
@@ -191,7 +109,7 @@ QJC.dictionary = [
     term: "三星堆",
     category: "cultural",
     level: "低",
-    region: "巴蜀",
+    region: "巴渝",
     reason: "古蜀文明遗址，出土神秘青铜面具，'Sanxingdui' 国际认知度上升，音译即可，可补「神秘青铜文明」。",
     suggestions: ["音译+注释：Sanxingdui — the mysterious Bronze Age site of ancient Shu civilization。"]
   },
@@ -199,7 +117,7 @@ QJC.dictionary = [
     term: "都江堰",
     category: "cultural",
     level: "低",
-    region: "巴蜀",
+    region: "巴渝",
     reason: "世界文化遗产水利工程，'Dujiangyan' 需补「两千年前无坝引水」的工程奇迹属性。",
     suggestions: ["音译+注释：Dujiangyan — a 2,000-year-old irrigation system that still works today。"]
   },
@@ -207,47 +125,24 @@ QJC.dictionary = [
     term: "麻将",
     category: "cultural",
     level: "低",
-    region: "巴蜀",
-    reason: "川渝茶馆常见消遣，'mahjong' 已是通行译名，但需点明「茶馆打麻将」的市井休闲场景。",
-    suggestions: ["直译 mahjong，可补：a favorite pastime in teahouses across Sichuan and Chongqing。"]
+    region: "巴渝",
+    reason: "巴渝茶馆常见消遣，'mahjong' 已是通行译名，但需点明「茶馆打麻将」的市井休闲场景。",
+    suggestions: ["直译 mahjong，可补：a favorite pastime in teahouses across Chongqing。"]
   },
   {
     term: "红辣椒",
     category: "cultural",
     level: "低",
-    region: "巴蜀",
-    reason: "川渝饮食「麻辣」的味觉符号，直译 red chili 可传达，但可补「川渝菜灵魂」的文化意义。",
-    suggestions: ["直译 red chilies，可补：the fiery soul of Sichuan-Chongqing cuisine。"]
+    region: "巴渝",
+    reason: "巴渝饮食「麻辣」的味觉符号，直译 red chili 可传达，但可补「巴渝菜灵魂」的文化意义。",
+    suggestions: ["直译 red chilies，可补：the fiery soul of Chongqing cuisine。"]
   }
 ];
 
 /* --------------------------------------------------------------------------
-   2. 内置对照案例（原稿 → 中英适配改写）
+  2. 内置对照案例（原稿 → 中英适配改写）
    -------------------------------------------------------------------------- */
 QJC.cases = [
-  {
-    id: "chengdu",
-    title: "成都慢生活：盖碗茶里的安逸",
-    tag: "成都 · 慢生活",
-    tagClass: "tag-teal",
-    summary: "以盖碗茶、茶馆、龙门阵为切口，呈现成都人「巴适安逸」的慢生活哲学。",
-    source:
-      "在成都，慢不是懒，而是一种生活态度。清晨的茶馆里，人们用盖碗茶泡开一天，摆起龙门阵，摆着摆着就是一个上午。这份巴适，这份安逸，藏在宽窄巷子的青石板路上，也藏在大熊猫慢悠悠啃竹子的姿态里。",
-    targets: [
-      {
-        lang: "中",
-        langFull: "中文（原稿）",
-        text: "在成都，慢不是懒，而是一种生活态度。清晨的茶馆里，人们用盖碗茶泡开一天，摆起龙门阵，摆着摆着就是一个上午。这份巴适，这份安逸，藏在宽窄巷子的青石板路上，也藏在大熊猫慢悠悠啃竹子的姿态里。",
-        strategy: "原稿"
-      },
-      {
-        lang: "英",
-        langFull: "English",
-        text: "In Chengdu, taking it slow is not laziness — it is a way of life. In the morning teahouses, people brew their first gaiawan (a Sichuan lidded cup of tea) to start the day, then settle into a longmenzhen, a leisurely, wide-ranging chat that can easily stretch until noon. This bashe — this comfortable, carefree ease — is felt in the flagstone lanes of Kuanzhai Alleys and in the unhurried way giant pandas nibble bamboo.",
-        strategy: "「盖碗茶」「龙门阵」「巴适/安逸」音译+注释；「宽窄巷子」音译+街区说明；「大熊猫」直译 giant panda。"
-      }
-    ]
-  },
   {
     id: "chongqing",
     title: "重庆江湖：火锅与码头的人间热气",
@@ -273,24 +168,24 @@ QJC.cases = [
   },
   {
     id: "feiyi",
-    title: "巴蜀非遗：变脸、蜀绣与川江号子",
-    tag: "巴蜀 · 非遗",
+    title: "巴渝非遗：变脸、蜀绣与川江号子",
+    tag: "巴渝 · 非遗",
     tagClass: "tag-gold",
-    summary: "以川剧变脸、蜀绣、川江号子为载体，展示巴蜀非遗的技艺之美与情感共通点。",
+    summary: "以川剧变脸、蜀绣、川江号子为载体，展示巴渝非遗的技艺之美与情感共通点。",
     source:
-      "巴蜀大地孕育了丰富的非物质文化遗产。川剧演员一转身便是一张新面孔的变脸，蜀绣艺人在方寸之间绣出山水花鸟，川江上的船工号子至今仍在诉说着先民与江水搏斗的坚韧。这些技艺，承载着巴蜀人对生活的热爱与对天地的敬畏。",
+      "巴渝大地孕育了丰富的非物质文化遗产。川剧演员一转身便是一张新面孔的变脸，蜀绣艺人在方寸之间绣出山水花鸟，川江上的船工号子至今仍在诉说着先民与江水搏斗的坚韧。这些技艺，承载着巴渝人对生活的热爱与对天地的敬畏。",
     targets: [
       {
         lang: "中",
         langFull: "中文（原稿）",
-        text: "巴蜀大地孕育了丰富的非物质文化遗产。川剧演员一转身便是一张新面孔的变脸，蜀绣艺人在方寸之间绣出山水花鸟，川江上的船工号子至今仍在诉说着先民与江水搏斗的坚韧。这些技艺，承载着巴蜀人对生活的热爱与对天地的敬畏。",
+        text: "巴渝大地孕育了丰富的非物质文化遗产。川剧演员一转身便是一张新面孔的变脸，蜀绣艺人在方寸之间绣出山水花鸟，川江上的船工号子至今仍在诉说着先民与江水搏斗的坚韧。这些技艺，承载着巴渝人对生活的热爱与对天地的敬畏。",
         strategy: "原稿"
       },
       {
         lang: "英",
         langFull: "English",
-        text: "The land of Sichuan and Chongqing has nurtured a wealth of intangible cultural heritage. Sichuan opera performers perform face-changing, swapping masks in the blink of an eye; Shu embroidery artists stitch landscapes, flowers and birds into tiny frames of silk; and the river chants of the Yangtze boatmen still echo the resilience of generations who wrestled with the waters. These crafts carry the people's love of life and their reverence for nature.",
-        strategy: "「变脸」意译+注释；「蜀绣」音译+工艺说明；「川江号子」描述+注释；「巴蜀」意译为 Sichuan and Chongqing。"
+        text: "The land of Bayu (Chongqing) has nurtured a wealth of intangible cultural heritage. Sichuan opera performers perform face-changing, swapping masks in the blink of an eye; Shu embroidery artists stitch landscapes, flowers and birds into tiny frames of silk; and the river chants of the Yangtze boatmen still echo the resilience of generations who wrestled with the waters. These crafts carry the people's love of life and their reverence for nature.",
+        strategy: "「变脸」意译+注释；「蜀绣」音译+工艺说明；「川江号子」描述+注释；「巴渝」意译为 Bayu (Chongqing)。"
       }
     ]
   },
@@ -320,14 +215,7 @@ QJC.cases = [
 ];
 
 /* --------------------------------------------------------------------------
-   3. 目标语言（主打中→英，架构保留数组便于将来扩展）
-   -------------------------------------------------------------------------- */
-QJC.languages = [
-  { code: "en", label: "英语", full: "English" }
-];
-
-/* --------------------------------------------------------------------------
-   4. 新闻稿件领域 / 体裁 / 写作风格维度（用户画像用）
+  3. 新闻稿件领域 / 体裁 / 写作风格维度（用户画像用）
    -------------------------------------------------------------------------- */
 QJC.domains = ["时政", "财经", "社会", "文化", "文旅", "体育", "法制", "科技"];
 
@@ -346,25 +234,19 @@ QJC.styleDims = {
 };
 
 /* --------------------------------------------------------------------------
-   5. 川渝核心术语中英对照（注入翻译/改稿 prompt 的术语表）
+  4. 巴渝核心术语中英对照（注入翻译/改稿 prompt 的术语表）
    -------------------------------------------------------------------------- */
 QJC.coreGlossary = {
   "火锅":     { en: "hotpot", region: "重庆" },
-  "盖碗茶":   { en: "gaiawan (a Sichuan lidded cup of tea)", region: "成都" },
-  "龙门阵":   { en: "longmenzhen (leisurely, wide-ranging chat)", region: "成都" },
-  "巴适":     { en: "bashe (comfortable and contented)", region: "成都" },
-  "安逸":     { en: "anyi (laid-back and carefree)", region: "成都" },
-  "川剧变脸": { en: "face-changing of Sichuan opera", region: "巴蜀" },
-  "蜀绣":     { en: "Shu embroidery", region: "巴蜀" },
-  "川江号子": { en: "river chants of Sichuan boatmen", region: "巴蜀" },
+  "川剧变脸": { en: "face-changing of Sichuan opera", region: "巴渝" },
+  "蜀绣":     { en: "Shu embroidery", region: "巴渝" },
+  "川江号子": { en: "river chants of Sichuan boatmen", region: "巴渝" },
   "洪崖洞":   { en: "Hongya Cave", region: "重庆" },
-  "宽窄巷子": { en: "Kuanzhai Alleys", region: "成都" },
-  "三星堆":   { en: "Sanxingdui", region: "巴蜀" },
-  "都江堰":   { en: "Dujiangyan", region: "巴蜀" },
-  "大熊猫":   { en: "giant panda", region: "成都" },
+  "三星堆":   { en: "Sanxingdui", region: "巴渝" },
+  "都江堰":   { en: "Dujiangyan", region: "巴渝" },
   "棒棒军":   { en: "bangbang (porters who carry goods on bamboo poles)", region: "重庆" },
   "袍哥":     { en: "Paoge brotherhood", region: "重庆" },
-  "麻将":     { en: "mahjong", region: "巴蜀" }
+  "麻将":     { en: "mahjong", region: "巴渝" }
 };
 
 /* 类别中文名映射 */
@@ -376,7 +258,6 @@ QJC.categoryNames = {
 
 /* 地域中文名映射 */
 QJC.regionNames = {
-  "成都": "成都 · 慢生活",
   "重庆": "重庆 · 码头江湖",
-  "巴蜀": "巴蜀共赏"
+  "巴渝": "巴渝共赏"
 };

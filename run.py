@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-桥见川渝 · 本地 AI 代理（零第三方依赖，Python 标准库）
+桥见巴渝 · 本地 AI 代理（零第三方依赖，Python 标准库）
 
 作用：
   1. 把当前目录作为静态网站 serve 出来（浏览器打开 http://localhost:8000）
@@ -167,7 +167,7 @@ class Handler(BaseHTTPRequestHandler):
 def main():
     key = load_key()
     print("=" * 48)
-    print("  Qiaojian Chuanyu - local AI proxy")
+    print("  Qiaojian Bayu - local AI proxy")
     print("  Open http://localhost:8000 in your browser")
     print("=" * 48)
     if key:

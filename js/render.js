@@ -1,5 +1,5 @@
 /* ==========================================================================
-   桥见川渝 · 渲染层
+   桥见巴渝 · 渲染层
    中英对照视图、文化词高亮、选段与更新高亮。
    ========================================================================== */
 
@@ -12,28 +12,41 @@ QJC.render = (function () {
     return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
 
-  /* 对单段 source 做词典匹配，返回该段内的高亮 HTML */
-  function highlightSegment(source, globalMatches) {
-    // 找出落在该段内的词条（按 term 在段内查找）
-    var hits = [];
+  /* 全文词典匹配：返回 [{start,end,term,category,level,reason,suggestions}]，
+     重叠处保留先出现者（翻译高亮与文化检索词卡共用）。 */
+  function findMatches(text) {
+    var matches = [];
     (QJC.dictionary || []).forEach(function (entry) {
       var idx = 0;
       while (true) {
-        var pos = source.indexOf(entry.term, idx);
+        var pos = text.indexOf(entry.term, idx);
         if (pos === -1) break;
-        hits.push({ start: pos, end: pos + entry.term.length, term: entry.term, category: entry.category, level: entry.level });
+        matches.push({
+          start: pos, end: pos + entry.term.length, term: entry.term,
+          category: entry.category, level: entry.level,
+          reason: entry.reason,
+          suggestions: entry.suggestions ? entry.suggestions.slice() : []
+        });
         idx = pos + entry.term.length;
       }
     });
-    if (!hits.length) return esc(source);
-    hits.sort(function (a, b) { return a.start - b.start || b.end - a.end; });
+    matches.sort(function (a, b) { return a.start - b.start || b.end - a.end; });
     var filtered = [], lastEnd = -1;
-    hits.forEach(function (h) { if (h.start >= lastEnd) { filtered.push(h); lastEnd = h.end; } });
+    matches.forEach(function (m) { if (m.start >= lastEnd) { filtered.push(m); lastEnd = m.end; } });
+    return filtered;
+  }
+
+  /* 对单段 source 做词典匹配，返回该段内的高亮 HTML */
+  function highlightSegment(source, globalMatches) {
+    var hits = findMatches(source).map(function (m) {
+      return { start: m.start, end: m.end, term: m.term, category: m.category, level: m.level };
+    });
+    if (!hits.length) return esc(source);
 
     var html = "", last = 0;
-    filtered.forEach(function (h) {
+    hits.forEach(function (h) {
       html += esc(source.slice(last, h.start));
-      html += '<mark class="hl ' + h.category + '" data-term="' + esc(h.term) + '" title="风险 ' + h.level + '">' + esc(h.term) + '</mark>';
+      html += '<mark class="hl ' + h.category + '" data-term="' + esc(h.term) + '" title="' + QJC.i18n.t("risk") + ' ' + h.level + '">' + esc(h.term) + '</mark>';
       last = h.end;
     });
     html += esc(source.slice(last));
@@ -57,11 +70,11 @@ QJC.render = (function () {
           trHtml = esc(seg.translation);
         }
       } else {
-        trHtml = '<span class="seg-translating">' + (state.translateFailed ? '翻译失败，请重试' : '翻译中…') + '</span>';
+        trHtml = '<span class="seg-translating">' + QJC.i18n.t(state.translateFailed ? "segFailed" : "segTranslating") + '</span>';
       }
       html += '<div class="seg' + (selected ? " selected" : "") + '" data-id="' + esc(seg.id) + '">' +
         '<div class="seg-head"><span class="seg-no">' + (i + 1) + '</span>' +
-        (selected ? '<span class="seg-tag">编辑中</span>' : '') + '</div>' +
+        (selected ? '<span class="seg-tag">' + QJC.i18n.t("segEditing") + '</span>' : '') + '</div>' +
         '<div class="seg-source">' + srcHtml + '</div>' +
         '<div class="seg-translation">' + trHtml + '</div>' +
       '</div>';
@@ -83,6 +96,7 @@ QJC.render = (function () {
 
   return {
     esc: esc,
+    findMatches: findMatches,
     highlightSegment: highlightSegment,
     renderCompare: renderCompare,
     applyUpdate: applyUpdate

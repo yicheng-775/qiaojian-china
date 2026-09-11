@@ -1,5 +1,5 @@
 // ============================================================================
-// 桥见川渝 · DeepSeek 代理（Netlify Function，零依赖，Node 内置 https 模块）
+// 桥见巴渝 · DeepSeek 代理（Netlify Function，零依赖，Node 内置 https 模块）
 //
 // 作用：浏览器直连 DeepSeek 会被 CORS 拦截，这里做云端中转。
 //   - key 由前端用户自填并经请求体传入（payload.key），可选回退环境变量。
