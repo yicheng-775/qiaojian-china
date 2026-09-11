@@ -293,6 +293,29 @@ QJC.cases = [
         strategy: "「变脸」意译+注释；「蜀绣」音译+工艺说明；「川江号子」描述+注释；「巴蜀」意译为 Sichuan and Chongqing。"
       }
     ]
+  },
+  {
+    id: "landmark",
+    title: "重庆地标：洪崖洞与山城巷",
+    tag: "重庆 · 立体魔幻",
+    tagClass: "tag-red",
+    summary: "借洪崖洞、山城巷、朝天门、解放碑等新语料库专名，展示山城立体地标的英文译法。",
+    source:
+      "重庆的夜景，从洪崖洞的吊脚楼开始。这座依山而建的建筑群灯火通明，仿佛宫崎骏笔下的奇幻世界。沿着山城巷拾级而上，左手是斑驳的黄葛树根，右手是长江对岸的摩天楼群。登上朝天门，看两江交汇；回望解放碑，感受这座城市历史与现代的交织。这就是重庆——一座“8D魔幻”的立体之城。",
+    targets: [
+      {
+        lang: "中",
+        langFull: "中文（原稿）",
+        text: "重庆的夜景，从洪崖洞的吊脚楼开始。这座依山而建的建筑群灯火通明，仿佛宫崎骏笔下的奇幻世界。沿着山城巷拾级而上，左手是斑驳的黄葛树根，右手是长江对岸的摩天楼群。登上朝天门，看两江交汇；回望解放碑，感受这座城市历史与现代的交织。这就是重庆——一座“8D魔幻”的立体之城。",
+        strategy: "原稿"
+      },
+      {
+        lang: "英",
+        langFull: "English",
+        text: "Chongqing's nightscape begins with the stilted houses of Hongya Cave. This hillside complex glows with lights, like a fantasy world straight out of a Miyazaki film. Climbing the steps of Shancheng Lane, on your left dangle mottled banyan roots, while on your right rise the skyscrapers across the Yangtze. Stand at Chaotianmen and watch the two rivers converge; look back at Jiefangbei and feel the city's blend of history and modernity. This is Chongqing — a \"8D magic\" vertical city.",
+        strategy: "「洪崖洞」音译+吊脚楼说明；「山城巷」音译 Shancheng Lane；「朝天门/解放碑」音译专名；「8D魔幻」直译并点明立体城市。"
+      }
+    ]
   }
 ];
 

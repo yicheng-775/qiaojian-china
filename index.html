@@ -113,6 +113,24 @@
 
     .error-hint { padding: 12px 16px; border-radius: var(--r-md); font-size: 13px; line-height: 1.6; background: rgba(194,64,42,.06); border: 1px dashed rgba(194,64,42,.4); color: var(--cinnabar); margin-bottom: 14px; }
 
+    /* 翻译方式切换 */
+    .input-left { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .mode-toggle { display: inline-flex; border: var(--border-strong); border-radius: 999px; overflow: hidden; background: #fff; }
+    .mt-btn { padding: 9px 18px; font-size: 14px; font-weight: 600; border: none; background: transparent; color: var(--ink-soft); cursor: pointer; transition: all .15s; }
+    .mt-btn.active { background: var(--cinnabar); color: #fff; }
+    .mt-btn:not(.active):hover { color: var(--cinnabar); }
+
+    /* 历史记录列表 */
+    .hist-list { max-height: 52vh; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin: 6px 0 14px; }
+    .hist-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border: var(--border); border-radius: var(--r-md); background: #fff; transition: all .15s; }
+    .hist-item:hover { border-color: var(--cinnabar); }
+    .hist-main { min-width: 0; flex: 1; }
+    .hist-title { font-weight: 600; font-size: 14px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .hist-meta { font-size: 12px; color: var(--ink-faint); margin-top: 3px; }
+    .hist-open { flex-shrink: 0; padding: 7px 14px; border-radius: 999px; border: var(--border-strong); background: #fff; font-size: 12.5px; font-weight: 600; color: var(--cinnabar); cursor: pointer; transition: all .15s; }
+    .hist-open:hover { border-color: var(--cinnabar); background: rgba(194,64,42,.05); }
+    .hist-empty { color: var(--ink-faint); font-size: 13.5px; text-align: center; padding: 22px 0; }
+
     @media (max-width: 860px) {
       .workspace { grid-template-columns: 1fr; }
     }
@@ -134,6 +152,7 @@
       <nav>
         <a href="profile.html" class="hide-sm">我的画像</a>
         <a href="about.html" class="hide-sm">关于项目</a>
+        <button class="icon-btn" id="openHistory" title="历史记录" aria-label="历史记录">📜</button>
         <button class="icon-btn" id="openSettings" title="设置" aria-label="设置">⚙</button>
       </nav>
     </div>
@@ -152,12 +171,19 @@
           <button class="chip" data-case="chengdu">🍵 成都慢生活</button>
           <button class="chip" data-case="chongqing">🌶 重庆江湖</button>
           <button class="chip" data-case="feiyi">🎭 巴蜀非遗</button>
+          <button class="chip" data-case="landmark">🌆 重庆地标</button>
         </div>
 
         <div class="input-card">
           <textarea class="origin" id="originText" placeholder="在此粘贴你的中文原稿，例如：在成都，慢不是懒，而是一种生活态度。清晨的茶馆里，人们用盖碗茶泡开一天，摆起龙门阵……"></textarea>
           <div class="input-actions">
-            <span class="input-hint"><span id="modeBadge" class="mode-badge mode-fallback">探测中…</span></span>
+            <div class="input-left">
+              <div class="mode-toggle" id="modeToggle" role="group" aria-label="翻译方式">
+                <button class="mt-btn active" data-mode="oneclick" type="button">⚡ 一键翻译</button>
+                <button class="mt-btn" data-mode="collab" type="button">💬 对话协作</button>
+              </div>
+              <span class="input-hint"><span id="modeBadge" class="mode-badge mode-fallback">探测中…</span></span>
+            </div>
             <div class="input-btns">
               <button class="upload-btn" id="uploadBtn" type="button">📄 上传文档</button>
               <button class="analyze-btn" id="analyzeBtn">开始翻译 →</button>
@@ -266,6 +292,22 @@
     </div>
   </div>
 
+  <!-- ============ 历史记录弹层 ============ -->
+  <div class="modal" id="historyModal" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3>📜 历史记录</h3>
+        <button class="icon-btn" id="closeHistory" aria-label="关闭">✕</button>
+      </div>
+      <p class="modal-sub">已保存的翻译成稿与对话记录。点「打开」可恢复当时的原文、译文与对话。</p>
+      <div class="hist-list" id="historyList"></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost btn-sm" id="clearHistory">清空历史</button>
+        <button class="btn btn-primary btn-sm" id="closeHistory2">关闭</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ============ 登录遮罩 ============ -->
   <div class="modal login-overlay" id="loginModal">
     <div class="modal-card">
@@ -293,14 +335,15 @@
 
   <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js" async></script>
   <script src="js/config.js?v=6"></script>
-  <script src="js/data.js?v=6"></script>
+  <script src="js/data.js?v=7"></script>
+  <script src="js/corpus.js?v=7"></script>
   <script src="js/storage.js?v=6"></script>
-  <script src="js/prompts.js?v=6"></script>
+  <script src="js/prompts.js?v=7"></script>
   <script src="js/segments.js?v=6"></script>
   <script src="js/api.js?v=7"></script>
   <script src="js/profile.js?v=6"></script>
   <script src="js/render.js?v=6"></script>
-  <script src="js/chat.js?v=6"></script>
-  <script src="js/app.js?v=6"></script>
+  <script src="js/chat.js?v=7"></script>
+  <script src="js/app.js?v=7"></script>
 </body>
 </html>

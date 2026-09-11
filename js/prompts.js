@@ -9,11 +9,16 @@ var QJC = window.QJC = window.QJC || {};
 QJC.prompts = (function () {
   "use strict";
 
-  /* ---------- 术语表文本（从 QJC.coreGlossary 生成） ---------- */
+  /* ---------- 术语表文本（合并 coreGlossary 生活核心词 + corpus 语料专名） ---------- */
   function glossaryText() {
     var lines = [];
-    Object.keys(QJC.coreGlossary || {}).forEach(function (term) {
-      var g = QJC.coreGlossary[term];
+    var merged = {};
+    // 先并入语料库专名（corpus.glossary），再并入核心生活词，后者同名时覆盖
+    [QJC.corpus && QJC.corpus.glossary, QJC.coreGlossary].forEach(function (src) {
+      Object.keys(src || {}).forEach(function (term) { merged[term] = src[term]; });
+    });
+    Object.keys(merged).forEach(function (term) {
+      var g = merged[term];
       lines.push("「" + term + "」→ " + g.en + "（" + g.region + "）");
     });
     return lines.join("\n");

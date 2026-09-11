@@ -73,11 +73,14 @@ QJC.chat = (function () {
   function updateHint() {
     if (!hintEl) return;
     var sel = appState && appState.selectedIds && appState.selectedIds.length;
+    var isCollab = appState && appState.mode === "collab";
     if (!appState || !appState.segments || !appState.segments.length) {
       hintEl.textContent = "先翻译一篇文章，再点击左侧段落开始改稿。";
     } else if (sel) {
       var idx = appState.segments.findIndex(function (s) { return s.id === appState.selectedIds[0]; });
       hintEl.textContent = "当前编辑：第 " + (idx + 1) + " 段";
+    } else if (isCollab) {
+      hintEl.textContent = "逐段协作：点击左侧某段，再在下方输入怎么翻这一段（如「翻这段，保留专名音译」）。";
     } else {
       hintEl.textContent = "点击左侧任意段落，针对它对话改稿。";
     }

@@ -15,7 +15,8 @@
     source: "",
     caseId: null,
     analyzed: false,
-    lastClassify: null  // 最近一次分类结果 {domain, genre}
+    lastClassify: null, // 最近一次分类结果 {domain, genre}
+    mode: "oneclick"    // 翻译方式：oneclick 一键整篇 | collab 对话逐段协作
   };
 
   function escapeHtml(s) {
@@ -57,6 +58,16 @@
     }
   }
 
+  /* ---------- 翻译方式切换（一键整篇 / 对话逐段协作） ---------- */
+  function setMode(mode) {
+    state.mode = mode === "collab" ? "collab" : "oneclick";
+    document.querySelectorAll(".mode-toggle .mt-btn").forEach(function (b) {
+      b.classList.toggle("active", b.getAttribute("data-mode") === state.mode);
+    });
+    var btn = $("analyzeBtn");
+    if (btn) btn.textContent = state.mode === "collab" ? "开始逐段协作 →" : "开始翻译 →";
+  }
+
   function renderStats() {
     var n = state.matches.length;
     var high = 0, mid = 0, low = 0;
@@ -82,6 +93,7 @@
       segments: state.segments,
       selectedIds: state.selectedIds,
       lastClassify: state.lastClassify,
+      mode: state.mode,
       chatHistory: QJC.chat.getMessages(),
       savedAt: Date.now()
     });
@@ -98,6 +110,7 @@
     state.selectedIds = ws.selectedIds || [];
     state.lastClassify = ws.lastClassify || null;
     state.analyzed = state.segments.length > 0;
+    if (ws.mode) setMode(ws.mode);
 
     if (state.segments.length) {
       $("workspace").hidden = false;
@@ -185,6 +198,20 @@
     $("workspace").scrollIntoView({ behavior: "smooth", block: "start" });
     persistWorkspace(); // 先存原稿（译文尚未生成）
 
+    // AI 模式：并行分类，累积画像（一键 / 协作两种模式都做）
+    if (QJC.api.isAI()) {
+      QJC.api.classify(state.source).then(function (result) {
+        state.lastClassify = result;
+        QJC.profile.recordClassification(result);
+        renderStats();
+        persistWorkspace();
+      }).catch(function () { /* 分类失败不阻塞 */ });
+    }
+
+    // 对话协作模式：不整篇翻译，逐段通过对话生成 / 修改
+    if (state.mode === "collab") return;
+
+    // 一键翻译模式：整篇一次生成
     var dictHints = state.matches.map(function (m) {
       return { term: m.term, suggestions: m.suggestions, reason: m.reason };
     });
@@ -194,15 +221,6 @@
       .then(function () {
         QJC.render.renderCompare(state, $("compareView"));
         persistWorkspace(); // 存译文
-        // AI 模式：并行分类，累积画像
-        if (QJC.api.isAI()) {
-          QJC.api.classify(state.source).then(function (result) {
-            state.lastClassify = result;
-            QJC.profile.recordClassification(result);
-            renderStats();
-            persistWorkspace(); // 分类结果并入工作台
-          }).catch(function () { /* 分类失败不阻塞 */ });
-        }
       })
       .catch(function (err) {
         QJC.render.renderCompare(state, $("compareView"));
@@ -249,6 +267,78 @@
     btn.textContent = "已保存 ✓";
     btn.disabled = true;
     setTimeout(function () { btn.textContent = old; btn.disabled = false; }, 1600);
+  }
+
+  /* ---------- 历史记录：查看 + 恢复 ---------- */
+  function renderHistory() {
+    var list = $("historyList");
+    if (!list) return;
+    var hist = QJC.storage.loadHistory();
+    if (!hist.length) {
+      list.innerHTML = '<div class="hist-empty">暂无历史记录。翻译并「保存成稿」后会自动出现在这里。</div>';
+      return;
+    }
+    var html = "";
+    hist.slice().reverse().forEach(function (h) {
+      var meta = [h.domain || "未分类", h.genre || "", fmtTime(h.createdAt)].filter(Boolean).join(" · ");
+      html += '<div class="hist-item">' +
+        '<div class="hist-main">' +
+          '<div class="hist-title">' + escapeHtml(h.title || "（无标题）") + '</div>' +
+          '<div class="hist-meta">' + escapeHtml(meta) + '</div>' +
+        '</div>' +
+        '<button class="hist-open" data-id="' + escapeHtml(h.id) + '">打开</button>' +
+      '</div>';
+    });
+    list.innerHTML = html;
+    list.querySelectorAll(".hist-open").forEach(function (btn) {
+      btn.addEventListener("click", function () { restoreHistory(btn.getAttribute("data-id")); });
+    });
+  }
+
+  function fmtTime(ts) {
+    if (!ts) return "";
+    var d = new Date(ts);
+    function p(n) { return (n < 10 ? "0" : "") + n; }
+    return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + " " + p(d.getHours()) + ":" + p(d.getMinutes());
+  }
+
+  function openHistory() { renderHistory(); $("historyModal").hidden = false; }
+  function closeHistory() { $("historyModal").hidden = true; }
+
+  function restoreHistory(id) {
+    var hist = QJC.storage.loadHistory();
+    var rec = null;
+    for (var i = 0; i < hist.length; i++) if (hist[i].id === id) rec = hist[i];
+    if (!rec) { alert("记录不存在，可能已被清空。"); return; }
+
+    var segs = (rec.segments && rec.segments.length) ? rec.segments : [];
+    // 用逐段中文拼回全文（segments 里保存了完整原稿）
+    var srcText = segs.length ? segs.map(function (s) { return s.source; }).join("\n\n") : (rec.sourceExcerpt || "");
+
+    state.source = srcText;
+    state.segments = segs.length ? segs : QJC.segments.splitSegments(srcText);
+    state.matches = findMatches(srcText);
+    state.selectedIds = [];
+    state.lastClassify = { domain: rec.domain || "未分类", genre: rec.genre || "未分类" };
+    state.analyzed = state.segments.length > 0;
+    state.caseId = null;
+
+    $("originText").value = srcText;
+    $("workspace").hidden = false;
+    $("results").hidden = false;
+    $("saveBtn").hidden = false;
+    renderStats();
+    QJC.render.renderCompare(state, $("compareView"));
+    QJC.chat.restoreMessages(rec.chatHistory || []);
+    persistWorkspace();
+    closeHistory();
+    $("workspace").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function clearHistory() {
+    if (!confirm("确定清空全部历史记录？此操作不可撤销。")) return;
+    QJC.storage.saveHistory([]);
+    renderHistory();
   }
 
   /* ---------- 设置弹层 ---------- */
@@ -332,6 +422,19 @@
       e.target.value = "";
     });
     $("exportBtn").addEventListener("click", exportDraft);
+
+    // 翻译方式切换（一键整篇 / 对话逐段协作）
+    document.querySelectorAll(".mode-toggle .mt-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () { setMode(btn.getAttribute("data-mode")); });
+    });
+
+    // 历史记录
+    $("openHistory").addEventListener("click", openHistory);
+    $("closeHistory").addEventListener("click", closeHistory);
+    var ch2 = $("closeHistory2");
+    if (ch2) ch2.addEventListener("click", closeHistory);
+    $("historyModal").addEventListener("click", function (e) { if (e.target === this) closeHistory(); });
+    $("clearHistory").addEventListener("click", clearHistory);
 
     // 探测 AI 代理并更新徽标
     QJC.api.probeAI().then(function (ok) { renderModeBadge(ok); });
